@@ -2,32 +2,56 @@ package com.znz.tpip_backend.model;
 
 import java.time.LocalDate;
 
+import com.znz.tpip_backend.enums.ActivityLogStatus;
+
+// import com.znz.tpip_backend.enums.ActivityLogStatus;
+
 import jakarta.persistence.*;
 import lombok.*;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "interActivityLog")
-public class InternActivityLog {
+@Table(name = "intern_activity_logs")
+public class InternActivityLog{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long logId;
+    private Long id;
 
+    // Date of teaching activity
     private LocalDate date;
 
-    private String topicTaught;
+    private LocalDate reviewDate; // Date mentor reviewed the log
 
+    // Lesson details
+    private String subject;          // e.g. Mathematics
+    private String topicTaught;
+    private String classLevel;       // e.g. Form 2, Grade 5
+
+    //  Activity details
+    @Column(length = 1000)
     private String activitiesDone;
 
+    @Column(length = 1000)
     private String challenges;
 
     private double hoursSpent;
 
+    // 👨‍🏫 Mentor feedback
+    @Column(length = 1000)
     private String mentorComment;
 
-    private String status;
+    // 📊 Status of log
+    @Enumerated(EnumType.STRING)
+    private ActivityLogStatus status;
 
-    private Intern intern;
+    // 🔗 Relationship (Many logs → One intern)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "intern_id", nullable = false)
+    private Intern intern;    
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "mentor_id", nullable = false)
+    private Mentor mentor;
 }

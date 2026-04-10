@@ -5,6 +5,7 @@ import lombok.Data;
 import java.util.List;
 
 import com.znz.tpip_backend.enums.EducationLevel;
+import com.znz.tpip_backend.enums.InternStatus;
 
 @Data
 @Entity
@@ -19,7 +20,7 @@ public class Intern extends User {
     private int graduationYear;
 
     // Internship Status
-    private String status; // ACTIVE, COMPLETED, EXTENDED
+    private InternStatus status; // ACTIVE, COMPLETED, EXTENDED
 
     // Relationships
 
