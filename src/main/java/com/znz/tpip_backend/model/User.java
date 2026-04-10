@@ -9,7 +9,7 @@ import lombok.Data;
 @Entity
 @Table(name = "users")
 @Inheritance(strategy = InheritanceType.JOINED)
-public class User {
+public class User extends AuditModel<String>{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

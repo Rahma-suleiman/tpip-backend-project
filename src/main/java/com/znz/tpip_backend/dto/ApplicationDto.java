@@ -13,7 +13,7 @@ import com.znz.tpip_backend.enums.SchoolType;
 
 
 @Data
-public class ApplicationDTO {
+public class ApplicationDto {
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long id;
@@ -52,7 +52,4 @@ public class ApplicationDTO {
     // forward r/ship
     private Long internId;
 
-    // // reverse r/ships
-    // @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    // private List<Long> employeeIds;
 }

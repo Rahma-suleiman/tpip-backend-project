@@ -12,18 +12,20 @@ import com.znz.tpip_backend.enums.InternStatus;
 @Table(name = "interns")
 public class Intern extends User {
 
-    // Academic / Professional Info
     @Enumerated(EnumType.STRING)
-    private EducationLevel educationLevel; // Diploma / Degree
+    private EducationLevel educationLevel; 
 
     private String specialization; // e.g. Mathematics, English
     private int graduationYear;
 
-    // Internship Status
     private InternStatus status; // ACTIVE, COMPLETED, EXTENDED
 
-    // Relationships
+    // are are using the fk or inheritance b2n user and inter/ user and mentor 
+    // @OneToOne(fetch = FetchType.LAZY)
+    // @JoinColumn(name = "user_id", nullable = false)
+    // private User user;   
 
+    // reverse r/ship
     @OneToMany(mappedBy = "intern", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Application> applications;
 
@@ -33,15 +35,12 @@ public class Intern extends User {
     @OneToMany(mappedBy = "intern", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Extension> extensions;
 
-    // One Intern → One Certificate
     @OneToOne(mappedBy = "intern", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Certificate certificate;
 
-    // One Intern → One Placement
     @OneToOne(mappedBy = "intern", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Placement placement;
 
-    // One Intern → Many Activity Logs
     @OneToMany(mappedBy = "intern", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<InternActivityLog> activityLogs;
 }

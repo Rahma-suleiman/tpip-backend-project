@@ -13,7 +13,7 @@ import lombok.*;
 @Setter
 @Entity
 @Table(name = "intern_activity_logs")
-public class InternActivityLog{
+public class InternActivityLog extends AuditModel<String>{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,11 +22,13 @@ public class InternActivityLog{
     // Date of teaching activity
     private LocalDate date;
 
-    private LocalDate reviewDate; // Date mentor reviewed the log
+    private LocalDate reviewDate; 
 
     // Lesson details
-    private String subject;          // e.g. Mathematics
+    private String subject;         
+    
     private String topicTaught;
+
     private String classLevel;       // e.g. Form 2, Grade 5
 
     //  Activity details
@@ -38,15 +40,12 @@ public class InternActivityLog{
 
     private double hoursSpent;
 
-    // 👨‍🏫 Mentor feedback
     @Column(length = 1000)
     private String mentorComment;
 
-    // 📊 Status of log
     @Enumerated(EnumType.STRING)
     private ActivityLogStatus status;
 
-    // 🔗 Relationship (Many logs → One intern)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "intern_id", nullable = false)
     private Intern intern;    

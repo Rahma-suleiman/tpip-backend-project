@@ -10,7 +10,7 @@ import lombok.Data;
 @Entity
 @Data
 @Table(name = "extension")
-public class Extension {
+public class Extension extends AuditModel<String>{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,7 +27,7 @@ public class Extension {
     @JoinColumn(name = "intern_id",nullable = false)
     private Intern intern;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "evaluation_id", nullable = false)
     private Evaluation evaluation;
 }

@@ -10,7 +10,7 @@ import lombok.Data;
 @Data
 @Entity
 @Table(name = "certificates")
-public class Certificate {
+public class Certificate extends AuditModel<String> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,7 +27,7 @@ public class Certificate {
     private String remarks;
     private Boolean approaved;
 
-    // Relationship (VERY IMPORTANT)
+    
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "intern_id", unique = true)
     private Intern intern;
