@@ -27,6 +27,7 @@ public class Extension extends AuditModel<String>{
     @JoinColumn(name = "intern_id",nullable = false)
     private Intern intern;
 
+    // ✔ OPTIONAL LINK (TRACEABILITY ONLY)
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "evaluation_id", nullable = false)
     private Evaluation evaluation;

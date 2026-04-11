@@ -3,8 +3,6 @@ package com.znz.tpip_backend.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
-// import com.znz.tpip_backend.enums.Role;
-
 @Data
 @Entity
 @Table(name = "users")
@@ -26,4 +24,28 @@ public class User extends AuditModel<String>{
 
     // @Enumerated(EnumType.STRING)
     // private Role role;
+
 }
+
+// @Inheritance(strategy = JOINED) means:
+
+// “Store User, Intern, and Mentor in different tables,
+// but connect them using the same ID and join them when needed.”
+
+// What is @Inheritance?
+// @Inheritance(strategy = InheritanceType.JOINED)
+
+// 👉 This tells Spring Boot (JPA):
+
+// “I have a parent class (User) and child classes (Intern, Mentor),
+// so please store them in the database in a related way.”
+
+// 🎯 Purpose (Simple Meaning)
+
+// 👉 It helps you connect classes that use inheritance in Java
+// to how data is stored in the database tables
+
+// What JOINED Strategy Does
+// @Inheritance(strategy = InheritanceType.JOINED)
+
+// 👉 It creates separate tables, but connects them using the same ID

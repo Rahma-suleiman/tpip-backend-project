@@ -25,7 +25,7 @@ public class Certificate extends AuditModel<String> {
     @Enumerated(EnumType.STRING)
     private Grade grade; 
     private String remarks;
-    private Boolean approaved;
+    private Boolean approved;
 
     
     @OneToOne(fetch = FetchType.LAZY)

@@ -2,45 +2,47 @@ package com.znz.tpip_backend.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import java.time.LocalDate;
 import java.util.List;
 
-import com.znz.tpip_backend.enums.EducationLevel;
-import com.znz.tpip_backend.enums.InternStatus;
+import com.znz.tpip_backend.enums.*;
 
 @Data
 @Entity
 @Table(name = "interns")
 public class Intern extends User {
 
+    // 🎓 Academic info (kept here for long-term use)
     @Enumerated(EnumType.STRING)
-    private EducationLevel educationLevel; 
+    private EducationLevel educationLevel;
 
-    private String specialization; // e.g. Mathematics, English
+    private String specialization;
     private int graduationYear;
 
-    private InternStatus status; // ACTIVE, COMPLETED, EXTENDED
+    // 📊 Status
+    @Enumerated(EnumType.STRING)
+    private InternStatus status;
 
-    // are are using the fk or inheritance b2n user and inter/ user and mentor 
-    // @OneToOne(fetch = FetchType.LAZY)
-    // @JoinColumn(name = "user_id", nullable = false)
-    // private User user;   
+    private LocalDate startDate;
+    private LocalDate endDate;
 
-    // reverse r/ship
-    @OneToMany(mappedBy = "intern", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Application> applications;
-
-    @OneToMany(mappedBy = "intern", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // 🔗 Evaluations
+    @OneToMany(mappedBy = "intern", cascade = CascadeType.ALL)
     private List<Evaluation> evaluations;
 
-    @OneToMany(mappedBy = "intern", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // 🔗 Extensions
+    @OneToMany(mappedBy = "intern", cascade = CascadeType.ALL)
     private List<Extension> extensions;
 
-    @OneToOne(mappedBy = "intern", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // 🔗 Certificate (1 intern → 1 certificate)
+    @OneToOne(mappedBy = "intern", cascade = CascadeType.ALL)
     private Certificate certificate;
 
-    @OneToOne(mappedBy = "intern", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // 🔗 Placement (1 intern → 1 placement)
+    @OneToOne(mappedBy = "intern", cascade = CascadeType.ALL)
     private Placement placement;
 
-    @OneToMany(mappedBy = "intern", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // 🔗 Activity logs
+    @OneToMany(mappedBy = "intern", cascade = CascadeType.ALL)
     private List<InternActivityLog> activityLogs;
 }

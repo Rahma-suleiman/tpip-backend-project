@@ -1,8 +1,9 @@
 package com.znz.tpip_backend.enums;
 
 public enum InternStatus {
-    NEW,
+    REGISTERED,
+    PLACED,
     ACTIVE,
+    EXTENDED,
     COMPLETED,
-    EXTENDED
 }

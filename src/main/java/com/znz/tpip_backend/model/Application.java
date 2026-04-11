@@ -4,12 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
 
-import com.znz.tpip_backend.enums.ApplicationStatus;
-import com.znz.tpip_backend.enums.District;
-import com.znz.tpip_backend.enums.EducationLevel;
-import com.znz.tpip_backend.enums.Gender;
-import com.znz.tpip_backend.enums.Region;
-import com.znz.tpip_backend.enums.SchoolType;
+import com.znz.tpip_backend.enums.*;
 
 @Data
 @Entity
@@ -20,10 +15,16 @@ public class Application extends AuditModel<String> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // 📊 Status
     @Enumerated(EnumType.STRING)
-    private ApplicationStatus status; 
-    
-    // Personal Information
+    private ApplicationStatus status = ApplicationStatus.PENDING;
+
+    // 🔗 Applicant WHO APPLIED -user can apply multiple times
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    // 👤 Personal Info
     private String firstName;
     private String lastName;
 
@@ -32,19 +33,21 @@ public class Application extends AuditModel<String> {
 
     private LocalDate dateOfBirth;
     private String phoneNumber;
+
+    @Column(nullable = false, unique = true)
     private String email;
     private String address;
 
-    // Academic Information
+    // 🎓 Academic Info
     @Enumerated(EnumType.STRING)
-    private EducationLevel educationLevel; 
-    
+    private EducationLevel educationLevel;
+
     private String courseStudied;
     private String institutionName;
     private int graduationYear;
-    private String qualificationFile; // path to uploaded certificate
-    
-    // Internship Preferences
+    private String qualificationFile;
+
+    // 📍 Preferences
     @Enumerated(EnumType.STRING)
     private Region preferredRegion;
 
@@ -52,27 +55,15 @@ public class Application extends AuditModel<String> {
     private District preferredDistrict;
 
     @Enumerated(EnumType.STRING)
-    private SchoolType preferredSchoolType; 
+    private SchoolType preferredSchoolType;
 
-    // Application Details
-    // private String motivationStatement; // why they want internship
     private LocalDate applicationDate;
 
-    // Documents
+    // 📂 Documents
     private String cvFile;
     private String transcriptFile;
 
-  
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "intern_id", nullable = false)
-    private Intern intern;
-
-    // // FK
-    // @ManyToOne(fetch = FetchType.LAZY)
-    // @JoinColumn(name = "departmentId", nullable = false)
-    // private Department department;
-
-    // // REVERSE R/SHIP MAPPING 
-    // @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    // private List<LeaveRequest> leaveRequests = new ArrayList<>();
+    // 🔍 Admin review
+    private String reviewedBy;
+    private LocalDate reviewDate;
 }

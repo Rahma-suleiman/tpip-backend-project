@@ -1,28 +1,41 @@
 package com.znz.tpip_backend.model;
 
+import jakarta.persistence.*;
+import lombok.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.persistence.*;
-import lombok.*;
+import com.znz.tpip_backend.enums.MentorStatus;
+import com.znz.tpip_backend.enums.QualificationLevel;
 
 @Entity
 @Getter
 @Setter
-@Table(name = "mentor")
+@Table(name = "mentors")
 public class Mentor extends User {
 
-    // @Id
-    // @GeneratedValue(strategy = GenerationType.IDENTITY)
-    // private Long id;
+    @Enumerated(EnumType.STRING)
+    private QualificationLevel qualificationLevel;
 
-    private String qualificationLevel;
-    private String status;
+    private int yearsOfExperience;
 
-        // // REVERSE R/SHIP MAPPING 
+    private String specialization;
+
+    @Enumerated(EnumType.STRING)
+    private MentorStatus status;
+
+    // fk r/ship
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "school_id")
+    private School school;
+
+    // reverse r/ships
     @OneToMany(mappedBy = "mentor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Feedback> feedbacks = new ArrayList<>();
 
     @OneToMany(mappedBy = "mentor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Placement> placements = new ArrayList<>();
+
+    @OneToMany(mappedBy = "mentor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Evaluation> evaluations = new ArrayList<>();
 }

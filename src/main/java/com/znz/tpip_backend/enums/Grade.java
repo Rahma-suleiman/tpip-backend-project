@@ -1,7 +1,7 @@
 package com.znz.tpip_backend.enums;
 
 public enum Grade {
-    PASS,  //meets minimum standard
+    PASS,  //meets minimum standard/acceptable performance
     MERIT,   //above average performance
     DISTINCTION   //excellent performance
 }

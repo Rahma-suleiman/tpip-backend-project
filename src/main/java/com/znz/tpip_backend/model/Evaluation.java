@@ -1,17 +1,17 @@
 package com.znz.tpip_backend.model;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 
 import com.znz.tpip_backend.enums.EvaluationStatus;
+import com.znz.tpip_backend.enums.EvaluationType;
 
 import jakarta.persistence.*;
 import lombok.Data;
 
 @Data
 @Entity
-@Table(name="evaluations")
-public class Evaluation extends AuditModel<String>{
+@Table(name = "evaluations")
+public class Evaluation extends AuditModel<String> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,12 +24,25 @@ public class Evaluation extends AuditModel<String>{
 
     private String remarks;
 
+    private LocalDate evaluationDate;
+
+    // Optional: type of evaluation (Midterm, Final)
+    @Enumerated(EnumType.STRING)
+    private EvaluationType evaluationType;
+
+ 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "intern_id", nullable = false)
     private Intern intern;
 
-    // Optional: Link Evaluation to Extension (if extension comes after evaluation)
-    // Reverse R/ship
-    @OneToOne(mappedBy = "evaluation", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "mentor_id", nullable = false)
+    private Mentor mentor;
+
+    // @OneToOne(mappedBy = "evaluation", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // private Extension extension;
+    
+    // OPTIONAL BACK-REFERENCE (NOT REQUIRED FOR LOGIC)
+    @OneToOne(mappedBy = "evaluation", fetch = FetchType.LAZY)
     private Extension extension;
 }
