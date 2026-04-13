@@ -1,5 +1,6 @@
 package com.znz.tpip_backend.dto;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -13,20 +14,21 @@ public class InternDto {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long id;
 
-    // private int experienceLevel;
+    private EducationLevel educationLevel;
 
-    private EducationLevel educationLevel; 
+    private String specialization;
 
-    private String specialization; 
     private int graduationYear;
 
-    private InternStatus status; 
+    private InternStatus status;
 
-    // private Long userId; 
+    private LocalDate startDate;
+
+    private LocalDate endDate;
 
     // reverse r/ships
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private List<Long> applicationIds;
+    // @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    // private List<Long> applicationIds;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private List<Long> evaluationIds;

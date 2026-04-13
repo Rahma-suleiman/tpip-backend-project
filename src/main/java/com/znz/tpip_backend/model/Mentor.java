@@ -25,9 +25,9 @@ public class Mentor extends User {
     private MentorStatus status;
 
     // fk r/ship
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "school_id")
-    private School school;
+    // @ManyToOne(fetch = FetchType.LAZY)
+    // @JoinColumn(name = "school_id")
+    // private School school;
 
     // reverse r/ships
     @OneToMany(mappedBy = "mentor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

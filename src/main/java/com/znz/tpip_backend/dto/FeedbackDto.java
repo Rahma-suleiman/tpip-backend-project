@@ -19,7 +19,9 @@ public class FeedbackDto {
     private LocalDate date;
 
     // forward r/ship
-    private Long mentor;
+    private Long mentorId;
+
+    private Long palcementId;
     
     // private Long intern; //cant access feedback
 }

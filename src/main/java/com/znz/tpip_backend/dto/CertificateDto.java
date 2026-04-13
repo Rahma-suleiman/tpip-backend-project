@@ -12,16 +12,18 @@ public class CertificateDto {
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long id;
-    
-    private LocalDate issueDate;
-    
-    private String issuedBy; 
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private String certificateNumber;
 
+    private LocalDate issueDate;
+
+    private String issuedBy;
+
     private Grade grade;
+
     private String remarks;
+    
     private Boolean approaved;
 
     // FK

@@ -26,7 +26,6 @@ public class Evaluation extends AuditModel<String> {
 
     private LocalDate evaluationDate;
 
-    // Optional: type of evaluation (Midterm, Final)
     @Enumerated(EnumType.STRING)
     private EvaluationType evaluationType;
 
@@ -38,11 +37,7 @@ public class Evaluation extends AuditModel<String> {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mentor_id", nullable = false)
     private Mentor mentor;
-
-    // @OneToOne(mappedBy = "evaluation", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    // private Extension extension;
     
-    // OPTIONAL BACK-REFERENCE (NOT REQUIRED FOR LOGIC)
     @OneToOne(mappedBy = "evaluation", fetch = FetchType.LAZY)
     private Extension extension;
 }

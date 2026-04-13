@@ -4,8 +4,6 @@ import java.time.LocalDate;
 
 import com.znz.tpip_backend.enums.ActivityLogStatus;
 
-// import com.znz.tpip_backend.enums.ActivityLogStatus;
-
 import jakarta.persistence.*;
 import lombok.*;
 

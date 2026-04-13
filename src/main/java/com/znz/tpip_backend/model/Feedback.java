@@ -28,11 +28,11 @@ public class Feedback extends AuditModel<String> {
 
     private LocalDate date;
 
+    // fk
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mentor_id", nullable = false)
     private Mentor mentor;
 
-    // ✔ WHICH PLACEMENT/INTERN IT REFERS TO (IMPORTANT FIX)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "placement_id", nullable = false)
     private Placement placement;

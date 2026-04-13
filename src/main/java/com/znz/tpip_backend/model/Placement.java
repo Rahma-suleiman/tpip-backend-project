@@ -17,32 +17,30 @@ public class Placement extends AuditModel<String> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 📅 Internship duration
+    // Internship duration
     private LocalDate startDate;
+
     private LocalDate endDate;
 
-    // 📊 Placement status
     @Enumerated(EnumType.STRING)
     private PlacementStatus status;
 
     private String remarks;
 
-    // 🔗 School
+    //fk
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "school_id", nullable = false)
     private School school;
 
-    // 🔗 Mentor
+    // reverse
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mentor_id", nullable = false)
     private Mentor mentor;
 
-    // 🔗 Intern (ONE intern → ONE placement)
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "intern_id", nullable = false, unique = true)
     private Intern intern;
 
-    // 🔗 Optional: Link to Application (good for tracking origin)
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "application_id")
     private Application application;

@@ -1,7 +1,10 @@
 package com.znz.tpip_backend.dto;
 
+import java.time.LocalDate;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.znz.tpip_backend.enums.EvaluationStatus;
+import com.znz.tpip_backend.enums.EvaluationType;
 
 import lombok.Data;
 
@@ -10,17 +13,23 @@ public class EvaluationDto {
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long id;
-    
+
     private double score;
-    
+
     private EvaluationStatus status;
-    
+
+    private LocalDate evaluationDate;
+
+    private EvaluationType evaluationType;
+
     private String remarks;
-    
+
     // Forward r/ship
     private Long internId;
-    
-    // Reverse 
+
+    private Long mentorId;
+
+    // Reverse
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long extensionId;
 }

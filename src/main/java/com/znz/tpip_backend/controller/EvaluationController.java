@@ -12,7 +12,7 @@ import com.znz.tpip_backend.service.EvaluationService;
 
 
 @RestController
-@RequestMapping("/api/v1/tpip/certificate")
+@RequestMapping("/api/v1/tpip/evaluation")
 public class EvaluationController {
       @Autowired
     private EvaluationService evaluationService;

@@ -23,7 +23,7 @@ public class MentorDto {
     private MentorStatus status;
     
     // fk r/ship
-    private Long schoolId;
+    // private Long schoolId;
     
     // reverse r/ships
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)

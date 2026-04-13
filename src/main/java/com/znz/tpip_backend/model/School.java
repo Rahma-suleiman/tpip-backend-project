@@ -23,9 +23,8 @@ public class School extends AuditModel<String> {
 
     private String name;
 
-    private String location; // physical address
+    private String location; 
 
-    // 🌍 Location hierarchy
     @Enumerated(EnumType.STRING)
     private Region region;
 
@@ -37,13 +36,7 @@ public class School extends AuditModel<String> {
     // @Enumerated(EnumType.STRING)
     // private SchoolType schoolType;
     
-    // @ElementCollection(fetch = FetchType.EAGER)
-    // @Enumerated(EnumType.STRING)
-    // @CollectionTable(name = "school_types", joinColumns = @JoinColumn(name =
-    // "school_id"))
-    // @Column(name = "type")
-    // private Set<SchoolType> schoolTypes;
-
+  
     // Stores MULTIPLE school types per school (e.g. PRIMARY + SECONDARY)
     // Uses a separate table (school_types) linked to school
     @ElementCollection(fetch = FetchType.EAGER)
@@ -51,10 +44,13 @@ public class School extends AuditModel<String> {
     @CollectionTable(name = "school_types", joinColumns = @JoinColumn(name = "school_id"))
     @Column(name = "type")
     private Set<SchoolType> schoolTypes;
+
     private int capacity; // max interns allowed
 
     private int currentInternCount;
+
     private String phoneNumber;
+
     private String email;
 
     private String headTeacherName;
@@ -62,6 +58,6 @@ public class School extends AuditModel<String> {
     @OneToMany(mappedBy = "school", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Placement> placements = new ArrayList<>();
 
-    @OneToMany(mappedBy = "school", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Mentor> mentors = new ArrayList<>();
+    // @OneToMany(mappedBy = "school", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // private List<Mentor> mentors = new ArrayList<>();
 }
