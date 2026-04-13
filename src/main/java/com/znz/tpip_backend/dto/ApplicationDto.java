@@ -65,5 +65,9 @@ public class ApplicationDto {
 
     // forward r/ship
     private Long userId;
+    
+    // reverse 
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private Long internId;
 
 }

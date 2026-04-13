@@ -15,12 +15,12 @@ public class ApplicationAdminController {
 
     private final ApplicationService applicationService;
 
-    // @PutMapping("/{id}/review")
-    // public ApplicationDto reviewApplication(
-    //         @PathVariable Long id,
-    //         @RequestParam ApplicationStatus status,
-    //         @RequestParam String reviewerName) {
+    @PutMapping("/{id}/review")
+    public ApplicationDto reviewApplication(
+            @PathVariable Long id,
+            @RequestParam ApplicationStatus status,
+            @RequestParam String reviewerName) {
 
-    //     return applicationService.reviewApplication(id, status, reviewerName);
-    // }
+        return applicationService.reviewApplication(id, status, reviewerName);
+    }
 }

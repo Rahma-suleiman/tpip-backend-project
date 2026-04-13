@@ -27,7 +27,7 @@ public class Application extends AuditModel<String> {
     private Gender gender;
 
     private LocalDate dateOfBirth;
-    
+
     private String phoneNumber;
 
     @Column(nullable = false, unique = true)
@@ -68,9 +68,14 @@ public class Application extends AuditModel<String> {
 
     private LocalDate reviewDate;
 
-
-    // FK: Applicant WHO APPLIED -user can apply multiple times
+    // FK: Applicant WHO APPLIED -a user can apply multiple times
+    // Many applications → one user
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    // reverse r/ship
+    // One application → one intern (after approval)
+    @OneToOne(mappedBy = "application", cascade = CascadeType.ALL)
+    private Intern intern;
 }

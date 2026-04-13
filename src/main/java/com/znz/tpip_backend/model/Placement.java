@@ -19,8 +19,10 @@ public class Placement extends AuditModel<String> {
 
     // Internship duration
     private LocalDate startDate;
-
+    
     private LocalDate endDate;
+
+    private LocalDate assignedDate;
 
     @Enumerated(EnumType.STRING)
     private PlacementStatus status;
@@ -32,7 +34,6 @@ public class Placement extends AuditModel<String> {
     @JoinColumn(name = "school_id", nullable = false)
     private School school;
 
-    // reverse
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mentor_id", nullable = false)
     private Mentor mentor;
@@ -41,7 +42,4 @@ public class Placement extends AuditModel<String> {
     @JoinColumn(name = "intern_id", nullable = false, unique = true)
     private Intern intern;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "application_id")
-    private Application application;
 }

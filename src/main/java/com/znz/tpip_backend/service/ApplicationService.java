@@ -8,7 +8,9 @@ import java.util.stream.Collectors;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.*;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.znz.tpip_backend.dto.ApplicationDto;
+import com.znz.tpip_backend.dto.InternDto;
 import com.znz.tpip_backend.enums.ApplicationStatus;
 import com.znz.tpip_backend.enums.InternStatus;
 import com.znz.tpip_backend.model.Application;
@@ -38,11 +40,13 @@ public class ApplicationService {
         return applications.stream()
                 .map(app -> {
                     ApplicationDto appDto = modelMapper.map(app, ApplicationDto.class);
-                    // private Long userId;
+
                     // FK
                     if (app.getUser() != null) {
                         appDto.setUserId(app.getUser().getId());
                     }
+                    // reverse
+                    appDto.setInternId(app.getIntern() != null ? app.getIntern().getId() : null);
                     return appDto;
                 }).collect(Collectors.toList());
     }
@@ -56,10 +60,12 @@ public class ApplicationService {
         if (app.getUser() != null) {
             appDto.setUserId(app.getUser().getId());
         }
+        // reverse
+        appDto.setInternId(app.getIntern() != null ? app.getIntern().getId() : null);
         return appDto;
     }
 
-    public ApplicationDto addApplication(ApplicationDto applicationDto) {
+    public ApplicationDto submitApplication(ApplicationDto applicationDto) {
 
         // Validate user
         if (applicationDto.getUserId() == null) {
@@ -69,12 +75,19 @@ public class ApplicationService {
         User user = userRepository.findById(applicationDto.getUserId())
                 .orElseThrow(() -> new IllegalStateException("user not found with id" + applicationDto.getUserId()));
 
-        // prevent duplicate pending applications for the same user
+        // prevent duplicate pending applications for the same user and also if has
+        // alrdy applied byt status is rejected,  re-application is allowed
         boolean hasPendingApplication = applicationRepository.existsByUserIdAndStatus(user.getId(),
                 ApplicationStatus.PENDING);
 
         if (hasPendingApplication) {
             throw new IllegalStateException("User already has pending application");
+        }
+
+        // Block application if already intern,re-application not allowed
+        boolean isAlreadyIntern = internRepository.existsByUserIdAndStatus(user.getId(), InternStatus.ACTIVE);
+        if (isAlreadyIntern) {
+            throw new IllegalStateException("User is already an active intern and cannot apply again");
         }
 
         Application app = modelMapper.map(applicationDto, Application.class);
@@ -147,6 +160,7 @@ public class ApplicationService {
     // User edits after rejection ❌ Blocked
     // Admin fields protected ✅ Yes
     // Status protected ✅ Yes
+
     public void deleteApplication(Long id) {
         Application app = applicationRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException("Application not found with id " + id));
@@ -154,51 +168,54 @@ public class ApplicationService {
         applicationRepository.delete(app);
     }
 
-    // public ApplicationDto reviewApplication(Long id, ApplicationStatus status, String reviewerName) {
+    public ApplicationDto reviewApplication(Long id, ApplicationStatus status, String reviewerName) {
 
-    //     // 1. Find application
-    //     Application app = applicationRepository.findById(id)
-    //             .orElseThrow(() -> new IllegalStateException("Application not found with id " + id));
+        // 1. Find application
+        Application app = applicationRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException("Application not found with id " + id));
 
-    //     // 2. Prevent re-review of already processed applications
-    //     if (app.getStatus() != ApplicationStatus.PENDING) {
-    //         throw new IllegalStateException("Application already reviewed");
-    //     }
+        // 2. Prevent re-review of already processed applications(app shld b reviewed
+        // once)
+        if (app.getStatus() != ApplicationStatus.PENDING) {
+            throw new IllegalStateException("Application already reviewed");
+        }
 
-    //     // 3. Update review info
-    //     app.setStatus(status);
-    //     app.setReviewedBy(reviewerName);
-    //     app.setReviewDate(LocalDate.now());
+        // 3. Update review info(Admin Review step)
+        app.setStatus(status);
+        app.setReviewedBy(reviewerName);
+        app.setReviewDate(LocalDate.now());
 
-    //     Application updatedApp = applicationRepository.save(app);
+        Application updatedApp = applicationRepository.save(app);
 
-    //     // 4. IF APPROVED → create intern
-    //     if (status == ApplicationStatus.APPROVED) {
+        // 4. IF APPROVED → create intern
+        if (status == ApplicationStatus.APPROVED) {
 
-    //         Intern intern = new Intern();
-    //         // intern.setUser(app.getUser());
-    //         // intern.setApplication(app);
-    //         intern.setStatus(InternStatus.ACTIVE);
-    //         intern.setStartDate(LocalDate.now());
-    //         intern.setEducationLevel(updatedApp.getEducationLevel());
-    //         intern.setStatus(InternStatus.ACTIVE);
-    //         // intern.setSpecialization(updatedApp.getS);
-    //         intern.setStatus();
-    //         intern.setStatus();
-    //         intern.setStatus();
+            Intern intern = new Intern();
+            // r/ships
+            intern.setUser(app.getUser());
+            intern.setApplication(app);
 
-    //         // TODO: assign school + mentor (later step in flow)
-    //         internRepository.save(intern);
-    //     }
+            intern.setStatus(InternStatus.ACTIVE);
+            intern.setStartDate(LocalDate.now());
+            intern.setEducationLevel(app.getEducationLevel());
+            intern.setStatus(InternStatus.ACTIVE);
+            intern.setSpecialization(app.getCourseStudied());
+            intern.setGraduationYear(app.getGraduationYear());
 
-//         // 5. IF REJECTED → allow re-application (handled by logic in addApplication)
-//         // nothing extra needed here
+            Intern savedIntern = internRepository.save(intern);
+            modelMapper.map(savedIntern, InternDto.class);
+            // TODO: assign school + mentor (later step in flow)
 
-//         // 6. Return DTO
-//         ApplicationDto dto = modelMapper.map(updatedApp, ApplicationDto.class);
-//         dto.setUserId(app.getUser().getId());
+        }
 
-//         return dto;
-//     }
+        // 5. IF REJECTED → allow re-application (handled by logic in addApplication)
+        // nothing extra needed here
 
-// }
+        // 6. Return DTO
+        ApplicationDto dto = modelMapper.map(updatedApp, ApplicationDto.class);
+        dto.setUserId(app.getUser().getId());
+
+        return dto;
+    }
+
+}

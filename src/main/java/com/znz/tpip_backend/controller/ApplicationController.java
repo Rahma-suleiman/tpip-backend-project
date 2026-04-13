@@ -9,13 +9,6 @@ import org.springframework.web.bind.annotation.*;
 
 import com.znz.tpip_backend.dto.ApplicationDto;
 import com.znz.tpip_backend.service.ApplicationService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-
-
 
 
 @RestController
@@ -39,8 +32,8 @@ public class ApplicationController {
   
     
     @PostMapping
-    public ResponseEntity<ApplicationDto> addApplication(@RequestBody ApplicationDto applicationDto) {
-        ApplicationDto application = applicationService.addApplication(applicationDto);
+    public ResponseEntity<ApplicationDto> submitApplication(@RequestBody ApplicationDto applicationDto) {
+        ApplicationDto application = applicationService.submitApplication(applicationDto);
         return new ResponseEntity<>(application, HttpStatus.CREATED);        
     }
     @PutMapping("/{id}")
