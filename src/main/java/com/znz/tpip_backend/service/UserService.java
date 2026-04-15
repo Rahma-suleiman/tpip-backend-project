@@ -70,8 +70,14 @@ public class UserService {
 
 
 }
+// REGISTER
 // {
 //   "name": "Rahma",
 //   "email": "rahma@gmail.com",
 //   "password": "Amhar123@"
+// }
+// {
+//   "name": "Shuayb",
+//   "email": "shuayb@gmail.com",
+//   "password": "shuayb123@"
 // }

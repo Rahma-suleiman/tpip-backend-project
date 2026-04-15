@@ -174,21 +174,25 @@ public class ApplicationService {
         Application app = applicationRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException("Application not found with id " + id));
 
-        // 2. Prevent re-review of already processed applications(app shld b reviewed
-        // once)
+        // 2. Prevent double review of already processed applications(app shld b reviewed once)
         if (app.getStatus() != ApplicationStatus.PENDING) {
             throw new IllegalStateException("Application already reviewed");
         }
 
-        // 3. Update review info(Admin Review step)
+        // 3. Update admin review data
         app.setStatus(status);
         app.setReviewedBy(reviewerName);
         app.setReviewDate(LocalDate.now());
 
-        Application updatedApp = applicationRepository.save(app);
+        applicationRepository.save(app);
 
+        Intern savedIntern = null;
         // 4. IF APPROVED → create intern
         if (status == ApplicationStatus.APPROVED) {
+
+             if (app.getUser() == null) {
+                throw new IllegalStateException("User missing in application");
+            }
 
             Intern intern = new Intern();
             // r/ships
@@ -196,14 +200,15 @@ public class ApplicationService {
             intern.setApplication(app);
 
             intern.setStartDate(LocalDate.now());
-            intern.setEducationLevel(app.getEducationLevel());
             intern.setStatus(InternStatus.ACTIVE);
+            intern.setEducationLevel(app.getEducationLevel());
             intern.setSpecialization(app.getCourseStudied());
             intern.setGraduationYear(app.getGraduationYear());
 
-            Intern savedIntern = internRepository.save(intern);
-            modelMapper.map(savedIntern, InternDto.class);
+            savedIntern = internRepository.save(intern);
             
+            app.setIntern(savedIntern);
+            applicationRepository.save(app);
             // TODO: assign school + mentor (later step in flow)
 
         }
@@ -212,14 +217,15 @@ public class ApplicationService {
         // nothing extra needed here
 
         // 6. Return DTO
-        ApplicationDto dto = modelMapper.map(updatedApp, ApplicationDto.class);
+        ApplicationDto dto = modelMapper.map(app, ApplicationDto.class);
         dto.setUserId(app.getUser().getId());
+        dto.setInternId(savedIntern != null ? savedIntern.getId() : null);
 
         return dto;
     }
 
 }
-
+// SUBMIT APPLICATION
 // {
 //   "firstName": "Rahma",
 //   "lastName": "Suleiman",
@@ -240,4 +246,10 @@ public class ApplicationService {
 //   "cvFile": "cv.pdf",
 //   "transcriptFile": "transcript.pdf",
 //   "userId": 1
+// }
+
+// REVIEW
+// {
+//   "status": "APPROVED",
+//   "reviewerName": "Admin John"
 // }

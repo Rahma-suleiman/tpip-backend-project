@@ -8,4 +8,5 @@ public class ApplicationReviewDto {
 
     private ApplicationStatus status;
     private String reviewerName;
+    // private String comment; // WHY rejected/approved
 }

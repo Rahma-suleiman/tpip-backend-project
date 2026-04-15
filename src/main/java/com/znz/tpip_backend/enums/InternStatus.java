@@ -6,5 +6,4 @@ public enum InternStatus {
     ACTIVE,
     EXTENDED,
     COMPLETED,
-    
 }
