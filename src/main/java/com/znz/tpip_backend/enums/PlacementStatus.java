@@ -7,6 +7,7 @@ public enum PlacementStatus {
     // TERMINATED,   // Stopped early (discipline, dropout, etc.)
     // EXTENDED      // Internship extended due to performance
     ASSIGNED,
+    ACTIVE,
     IN_PROGRESS,
     COMPLETED
 }

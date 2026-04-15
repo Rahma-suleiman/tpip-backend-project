@@ -4,9 +4,6 @@ import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.znz.tpip_backend.enums.PlacementStatus;
-
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import lombok.Data;
 
 @Data
@@ -21,19 +18,23 @@ public class PlacementDto {
     
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private LocalDate assignedDate;
-
-    @Enumerated(EnumType.STRING)
+    
+    // @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private PlacementStatus status;
 
     private String remarks;
 
-    // fk
-    private Long school;
-    
-    // reverse
+    // fk IDs (for backend operations) =====
+    private Long schoolId;
+
     private Long mentorId;
 
     private Long internId;
 
-    private Long applicationId;
+     // ===== Names (for frontend display) =====
+    private String schoolName;
+    private String mentorName;
+    private String internName;
+
+    // private Long applicationId;
 }

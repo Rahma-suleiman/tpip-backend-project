@@ -2,12 +2,12 @@ package com.znz.tpip_backend.service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.znz.tpip_backend.dto.InternDto;
+import com.znz.tpip_backend.dto.AssignRequestDto;
 import com.znz.tpip_backend.dto.PlacementDto;
 import com.znz.tpip_backend.enums.PlacementStatus;
 import com.znz.tpip_backend.model.Intern;
@@ -38,79 +38,278 @@ public class PlacementService {
         this.modelMapper = modelMapper;
     }
 
+    // 1. OK BUT duplicate mapping to dto for fk in every methods
+    // public List<PlacementDto> getAllPlacements() {
+    // List<Placement> placements = placementRepository.findAll();
+    // return placements.stream()
+    // .map(placement -> {
+    // PlacementDto placementDto = modelMapper.map(placement, PlacementDto.class);
+
+    // // fk
+    // if (placement.getSchool() != null) {
+    // placementDto.setSchoolId(placement.getSchool().getId());
+    // }
+    // if (placement.getMentor() != null) {
+    // placementDto.setMentorId(placement.getMentor().getId());
+    // }
+    // if (placement.getIntern() != null) {
+    // placementDto.setInternId(placement.getIntern().getId());
+    // }
+    // return placementDto;
+    // }).collect(Collectors.toList());
+    // }
+
+    // BEST(USING mapToDto()):Cleaner, reusable and no duplication of fk mapping to
+    // dto
     public List<PlacementDto> getAllPlacements() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getAllPlacements'");
+        return placementRepository.findAll()
+                .stream()
+                .map(this::mapToDto) // ✅ CLEAN
+                .collect(Collectors.toList());
     }
+    // public PlacementDto getPlacementById(Long id) {
+    // Placement placement = placementRepository.findById(id)
+    // .orElseThrow(() -> new IllegalStateException("placement not found with id" +
+    // id));
+    // PlacementDto placementDto = modelMapper.map(placement, PlacementDto.class);
+    // // fk
+    // if (placement.getSchool() != null) {
+    // placementDto.setSchoolId(placement.getSchool().getId());
+    // }
+    // if (placement.getMentor() != null) {
+    // placementDto.setMentorId(placement.getMentor().getId());
+    // }
+    // if (placement.getIntern() != null) {
+    // placementDto.setInternId(placement.getIntern().getId());
+    // }
 
+    // return placementDto;
+    // }
     public PlacementDto getPlacementById(Long id) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getPlacementById'");
+        Placement placement = placementRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException("placement not found with id " + id));
+
+        return mapToDto(placement);
     }
 
-    // public PlacementDto addPlacement(PlacementDto placementDto) {
-    // // TODO Auto-generated method stub
-    // throw new UnsupportedOperationException("Unimplemented method
-    // 'addPlacement'");
-    // }
+    // its like to create/add new placement
+    // assignIntern() → create or update (only before start)
+    public PlacementDto assignOrReassignIntern(AssignRequestDto request) {
+        Intern intern = internRepository.findById(request.getInternId())
+                .orElseThrow(() -> new IllegalStateException("intern not found with id" + request.getInternId()));
+        School school = schoolRepository.findById(request.getSchoolId())
+                .orElseThrow(() -> new IllegalStateException("school not found with id" + request.getSchoolId()));
+        Mentor mentor = mentorRepository.findById(request.getMentorId())
+                .orElseThrow(() -> new IllegalStateException("mentor not found with id" + request.getMentorId()));
 
-    // public PlacementDto editPlacement(Long id, PlacementDto placementDto) {
-    // // TODO Auto-generated method stub
-    // throw new UnsupportedOperationException("Unimplemented method
-    // 'editPlacement'");
-    // }
+        // check if placement alrdy exists for this intern
+        Placement placement = placementRepository.findByInternId(request.getInternId()).orElse(null);
 
-    public InternDto assignIntern(Long id, Long schoolId, Long mentorId) {
-        Intern intern = internRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("intern not found with id" + id));
-        School schl = schoolRepository.findById(schoolId)
-                .orElseThrow(() -> new IllegalStateException("school not found with id" + schoolId));
-        Mentor mentor = mentorRepository.findById(mentorId)
-                .orElseThrow(() -> new IllegalStateException("mentor not found with id" + mentorId));
+        if (placement != null) {
+            // block if internship alrdy started/STRICT RULE: cannot reassign if ACTIVE
+            if (placement.getStatus() == PlacementStatus.ACTIVE) {
+                throw new IllegalStateException("Cannot reassign after internship started");
+            }
+            // update existing placement
+            placement.setSchool(school);
+            placement.setMentor(mentor);
 
-        Placement placement = new Placement();
-        placement.setIntern(intern);
-        placement.setSchool(schl);
+        } else {
+            // create new placement/first time assignment
+            placement = new Placement();
+            placement.setIntern(intern);
+            placement.setSchool(school);
+            placement.setMentor(mentor);
+
+            // Assigned but not started yet
+            placement.setAssignedDate(LocalDate.now());
+            placement.setStatus(PlacementStatus.ASSIGNED);
+
+            // after assigned when shld intern start internship
+            // BEST PRACTICE: internship starts later (NOT now)
+            // placement.setStartDate(null);
+            // placement.setEndDate(null);
+
+        }
+
+        Placement savedPlacement = placementRepository.save(placement);
+        // 1. manual mapping to dto
+        // PlacementDto placeResponse = modelMapper.map(savedPlacement,
+        // PlacementDto.class);
+        // // manually map fk
+        // placeResponse.setInternId(savedPlacement.getIntern().getId());
+        // placeResponse.setSchoolId(savedPlacement.getSchool().getId());
+        // placeResponse.setMentorId(savedPlacement.getMentor().getId());
+
+        // return placeResponse;
+
+        // 2. mapping to dto using helper mapToDto()
+        return mapToDto(savedPlacement);
+    }
+
+    // UPDATE ONLY B4 START/ACTIVE
+    public PlacementDto updatePlacement(Long id, PlacementDto placementDto) {
+        Placement placement = placementRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException("placement not found with id" + id));
+
+        // only allow update b4 internship starts
+        if (placement.getStatus() == PlacementStatus.ACTIVE) {
+            throw new IllegalStateException("Cannot edit after internship started");
+        }
+
+        // update fields (except intern, start/end date, status)
+        School school = schoolRepository.findById(placementDto.getSchoolId())
+                .orElseThrow(() -> new IllegalStateException(
+                        "school not found with id" + placementDto.getSchoolId()));
+        Mentor mentor = mentorRepository.findById(placementDto.getMentorId())
+                .orElseThrow(() -> new IllegalStateException(
+                        "mentor not found with id" + placementDto.getMentorId()));
+        placement.setSchool(school);
         placement.setMentor(mentor);
-        // Assigned but not started yet
-        placement.setStatus(PlacementStatus.ASSIGNED);
 
-        placement.setAssignedDate(LocalDate.now());
+        // Placement updatedPlacement = placementRepository.save(placement);
+        // return modelMapper.map(updatedPlacement, PlacementDto.class);
+        Placement updatedPlacement = placementRepository.save(placement);
+        // 1. manuall mapping
+        // PlacementDto placeResponse = modelMapper.map(updatedPlacement,
+        // PlacementDto.class);
+        // // manually map fk
+        // placeResponse.setInternId(updatedPlacement.getIntern().getId());
+        // placeResponse.setSchoolId(updatedPlacement.getSchool().getId());
+        // placeResponse.setMentorId(updatedPlacement.getMentor().getId());
 
-        // after assigned when shld intern start internship
-        // BEST PRACTICE: internship starts later (NOT now)
-        placement.setStartDate(null);
-        placement.setEndDate(null);
-
-        placementRepository.save(placement);
-
-        return modelMapper.map(intern, InternDto.class);
-
+        // return placeResponse;
+        return mapToDto(updatedPlacement);
     }
 
+    // startInternship() → move to ACTIVE
     public PlacementDto startInternship(Long id) {
         Placement placement = placementRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException("placement not found with id" + id));
 
+        // ONLY allow if assigned
         if (placement.getStatus() != PlacementStatus.ASSIGNED) {
-            throw new IllegalStateException("Internship already started or invalid state");
+            throw new IllegalStateException(
+                    "Only ASSIGNED placements can be started. Current status: " + placement.getStatus());
         }
         LocalDate start = LocalDate.now();
         LocalDate end = start.plusMonths(12);
 
         placement.setStartDate(start);
         placement.setEndDate(end);
+        placement.setStatus(PlacementStatus.ACTIVE);
 
         Placement savedPlacement = placementRepository.save(placement);
 
-        return modelMapper.map(savedPlacement, PlacementDto.class);
+        // 1. manual mapping
+        // PlacementDto placeResponse = modelMapper.map(savedPlacement,
+        // PlacementDto.class);
+        // // manually map fk
+        // placeResponse.setInternId(savedPlacement.getIntern().getId());
+        // placeResponse.setSchoolId(savedPlacement.getSchool().getId());
+        // placeResponse.setMentorId(savedPlacement.getMentor().getId());
+
+        // return placeResponse;
+
+        // 2. mapping using helper
+        return mapToDto(savedPlacement);
 
     }
 
     public void deletePlacement(Long id) {
+
         Placement placement = placementRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException("placement not found with id" + id));
+        if (placement.getStatus() == PlacementStatus.ACTIVE) {
+            throw new IllegalStateException("Cannot delete ACTIVE placement");
+        }
+
         placementRepository.delete(placement);
     }
 
+    private PlacementDto mapToDto(Placement placement) {
+        PlacementDto dto = modelMapper.map(placement, PlacementDto.class);
+
+        // 1. manually set fk ids
+        // if (placement.getIntern() != null) {
+        // dto.setInternId(placement.getIntern().getId());
+        // }
+        // if (placement.getSchool() != null) {
+        // dto.setSchoolId(placement.getSchool().getId());
+        // }
+        // if (placement.getMentor() != null) {
+        // dto.setMentorId(placement.getMentor().getId());
+        // }
+        // result in JSON RESPONSE
+        // {
+        // "internId": 1,
+        // "schoolId": 2,
+        // "mentorId": 3
+        // }
+
+        // 2. manually set fk ids(BESST IDS +NAMES in JSON Response"
+        Intern intern = placement.getIntern();
+
+        if (intern != null) {
+            dto.setInternId(intern.getId());
+            // dto.setInternName(placement.getIntern().getApplication().getFirstName() + " "
+            // + placement.getIntern().getApplication().getLastName());
+            // with abv app will crash if application is null better use the below
+            if (intern.getApplication() != null) {
+                dto.setInternName(
+                        intern.getApplication().getFirstName() + " " +
+                                intern.getApplication().getLastName());
+            }
+        }
+        
+        if (placement.getSchool() != null) {
+            dto.setSchoolId(placement.getSchool().getId());
+            dto.setSchoolName(placement.getSchool().getName());
+        }
+        if (placement.getMentor() != null) {
+            dto.setMentorId(placement.getMentor().getId());
+            dto.setMentorName(placement.getMentor().getName());
+        }
+        // result in JSON RESPONSE
+        // {
+        // "internId": 1,
+        // "internName": "Rahma Suleiman",
+        // "schoolId": 2,
+        // "schoolName": "Kiembe Samaki Secondary",
+        // "mentorId": 3,
+        // "mentorName": "Mr. Ali"
+        // }
+        return dto;
+    }
+
 }
+
+// tell me the difference between this"Placement existingPlacement =
+// placementRepository.findByInternId(request.getInternId()).orElse(null);" and
+// "Placement existingPlacement =
+// placementRepository.findByInternId(request.getInternId())
+// .orElseThrow(() -> new IllegalStateException("Placement not found for intern
+// id" + request.getInternId()));"
+
+// Application Approved
+// ↓
+// Intern Created
+// ↓
+// Assign / Reassign ✅
+// ↓
+// Placement = ASSIGNED
+// ↓
+// Start Internship ✅
+// ↓
+// Placement = ACTIVE
+// ↓
+// No more edits ❌
+
+// 🚀 If you want next (very useful)
+
+// Now you are ready for:
+
+// 🔥 completeInternship() (PASS / FAIL)
+// 🔥 extendInternship() (if failed)
+// 🔥 Activity logs (daily tracking)
+// 🔥 Evaluation system

@@ -2,13 +2,11 @@ package com.znz.tpip_backend.service;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.concurrent.Flow;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.*;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.znz.tpip_backend.dto.ApplicationDto;
 import com.znz.tpip_backend.dto.InternDto;
 import com.znz.tpip_backend.enums.ApplicationStatus;
