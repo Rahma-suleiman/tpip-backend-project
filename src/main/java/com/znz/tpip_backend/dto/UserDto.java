@@ -1,12 +1,16 @@
 package com.znz.tpip_backend.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.Data;
 
 @Data
 public class UserDto {
-    protected Long id;
-    protected String name;
-    protected String email;
-    protected String password;
-    protected String role;
+    
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private Long id;
+
+    private String name;
+    private String email;
+    private String password;
 }

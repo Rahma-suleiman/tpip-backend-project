@@ -18,20 +18,19 @@ import com.znz.tpip_backend.repository.ApplicationRepository;
 import com.znz.tpip_backend.repository.InternRepository;
 import com.znz.tpip_backend.repository.UserRepository;
 
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class ApplicationService {
 
-    private ApplicationRepository applicationRepository;
-    private UserRepository userRepository;
-    private InternRepository internRepository;
-    private ModelMapper modelMapper;
+    private final ApplicationRepository applicationRepository;
+    private final UserRepository userRepository;
+    private final InternRepository internRepository;
+    private final ModelMapper modelMapper;
 
-    public ApplicationService(ApplicationRepository applicationRepository, UserRepository userRepository,
-            ModelMapper modelMapper) {
-        this.applicationRepository = applicationRepository;
-        this.userRepository = userRepository;
-        this.modelMapper = modelMapper;
-    }
+
 
     public List<ApplicationDto> getAllApplications() {
         List<Application> applications = applicationRepository.findAll();
@@ -166,6 +165,9 @@ public class ApplicationService {
         applicationRepository.delete(app);
     }
 
+    //  we used @Transactional BCZ : i did - APPROVE application → CREATE intern
+    //If intern creation fails → application already approved (data inconsistency)
+    @Transactional  // ensures both operations succeed or fail together
     public ApplicationDto reviewApplication(Long id, ApplicationStatus status, String reviewerName) {
 
         // 1. Find application
@@ -193,7 +195,6 @@ public class ApplicationService {
             intern.setUser(app.getUser());
             intern.setApplication(app);
 
-            intern.setStatus(InternStatus.ACTIVE);
             intern.setStartDate(LocalDate.now());
             intern.setEducationLevel(app.getEducationLevel());
             intern.setStatus(InternStatus.ACTIVE);
@@ -202,6 +203,7 @@ public class ApplicationService {
 
             Intern savedIntern = internRepository.save(intern);
             modelMapper.map(savedIntern, InternDto.class);
+            
             // TODO: assign school + mentor (later step in flow)
 
         }
@@ -217,3 +219,25 @@ public class ApplicationService {
     }
 
 }
+
+// {
+//   "firstName": "Rahma",
+//   "lastName": "Suleiman",
+//   "gender": "FEMALE",
+//   "dateOfBirth": "2000-04-15",
+//   "phoneNumber": "0712345678",
+//   "email": "rahma@gmail.com",
+//   "address": "Dar es Salaam",
+//   "educationLevel": "DIPLOMA",
+//   "courseStudied": "Computer Science",
+//   "institutionName": "SUZA",
+//   "graduationYear": 2024,
+//   "qualificationFile": "file.pdf",
+//   "preferredRegion": "URBAN_WEST",
+//   "preferredDistrict": "MJINI",
+//   "preferredSchoolType": "PRIMARY",
+//   "applicationDate": "2026-04-15",
+//   "cvFile": "cv.pdf",
+//   "transcriptFile": "transcript.pdf",
+//   "userId": 1
+// }

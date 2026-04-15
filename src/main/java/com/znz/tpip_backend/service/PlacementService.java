@@ -19,24 +19,17 @@ import com.znz.tpip_backend.repository.MentorRepository;
 import com.znz.tpip_backend.repository.PlacementRepository;
 import com.znz.tpip_backend.repository.SchoolRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class PlacementService {
 
-    // @Autowired
-    private PlacementRepository placementRepository;
-    private InternRepository internRepository;
-    private SchoolRepository schoolRepository;
-    private MentorRepository mentorRepository;
-    private ModelMapper modelMapper;
-
-    public PlacementService(PlacementRepository placementRepository, InternRepository internRepository,
-            SchoolRepository schoolRepository, MentorRepository mentorRepository, ModelMapper modelMapper) {
-        this.placementRepository = placementRepository;
-        this.internRepository = internRepository;
-        this.schoolRepository = schoolRepository;
-        this.mentorRepository = mentorRepository;
-        this.modelMapper = modelMapper;
-    }
+    private final PlacementRepository placementRepository;
+    private final InternRepository internRepository;
+    private final SchoolRepository schoolRepository;
+    private final MentorRepository mentorRepository;
+    private final ModelMapper modelMapper;
 
     // 1. OK BUT duplicate mapping to dto for fk in every methods
     // public List<PlacementDto> getAllPlacements() {
@@ -227,6 +220,9 @@ public class PlacementService {
         placementRepository.delete(placement);
     }
 
+
+    // This is just a helper (support) method
+    // Its job is ONLY ONE thing: Convert a Placement (Entity) → PlacementDto
     private PlacementDto mapToDto(Placement placement) {
         PlacementDto dto = modelMapper.map(placement, PlacementDto.class);
 
@@ -261,7 +257,7 @@ public class PlacementService {
                                 intern.getApplication().getLastName());
             }
         }
-        
+
         if (placement.getSchool() != null) {
             dto.setSchoolId(placement.getSchool().getId());
             dto.setSchoolName(placement.getSchool().getName());
@@ -284,13 +280,7 @@ public class PlacementService {
 
 }
 
-// tell me the difference between this"Placement existingPlacement =
-// placementRepository.findByInternId(request.getInternId()).orElse(null);" and
-// "Placement existingPlacement =
-// placementRepository.findByInternId(request.getInternId())
-// .orElseThrow(() -> new IllegalStateException("Placement not found for intern
-// id" + request.getInternId()));"
-
+// PROJECT FLOW
 // Application Approved
 // ↓
 // Intern Created

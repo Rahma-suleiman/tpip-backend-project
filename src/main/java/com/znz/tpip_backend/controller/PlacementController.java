@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 
 @RestController
-@RequestMapping("/api/v1/tpip/placement")
+@RequestMapping("/api/v1/tpip/placements")
 public class PlacementController {
 
     @Autowired

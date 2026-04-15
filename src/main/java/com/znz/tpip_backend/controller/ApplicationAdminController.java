@@ -3,7 +3,7 @@ package com.znz.tpip_backend.controller;
 import org.springframework.web.bind.annotation.*;
 
 import com.znz.tpip_backend.dto.ApplicationDto;
-import com.znz.tpip_backend.enums.ApplicationStatus;
+import com.znz.tpip_backend.dto.ApplicationReviewDto;
 import com.znz.tpip_backend.service.ApplicationService;
 
 import lombok.RequiredArgsConstructor;
@@ -18,9 +18,12 @@ public class ApplicationAdminController {
     @PutMapping("/{id}/review")
     public ApplicationDto reviewApplication(
             @PathVariable Long id,
-            @RequestParam ApplicationStatus status,
-            @RequestParam String reviewerName) {
+            @RequestBody ApplicationReviewDto request) {
 
-        return applicationService.reviewApplication(id, status, reviewerName);
+        return applicationService.reviewApplication(
+                id,
+                request.getStatus(),
+                request.getReviewerName()
+        );
     }
 }
