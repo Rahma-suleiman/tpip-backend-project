@@ -2,40 +2,280 @@ package com.znz.tpip_backend.service;
 
 import java.util.List;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.znz.tpip_backend.dto.MentorDto;
+import com.znz.tpip_backend.dto.SchoolDto;
+import com.znz.tpip_backend.enums.MentorStatus;
+import com.znz.tpip_backend.enums.PlacementStatus;
+import com.znz.tpip_backend.model.Feedback;
+import com.znz.tpip_backend.model.Mentor;
+import com.znz.tpip_backend.model.Placement;
+import com.znz.tpip_backend.model.School;
 import com.znz.tpip_backend.repository.MentorRepository;
+import com.znz.tpip_backend.repository.SchoolRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class MentorService {
 
-    @Autowired
-    private MentorRepository mentorRepository;
+    private final MentorRepository mentorRepository;
+    private final ModelMapper modelMapper;
+    private final SchoolRepository schoolRepository;
 
     public List<MentorDto> getAllMentors() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getAllMentors'");
+        return mentorRepository.findAll()
+                .stream()
+                .map(this::mapToDto)
+                .toList();
     }
 
     public MentorDto getMentorById(Long id) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getMentorById'");
+        Mentor mentor = mentorRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException("Mentor not found with id " + id));
+
+        return mapToDto(mentor);
     }
 
     public MentorDto addMentor(MentorDto mentorDto) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'addMentor'");
+
+        // 1. VALIDATE
+        if (mentorDto.getName() == null || mentorDto.getName().isBlank()) {
+            throw new IllegalArgumentException("Mentor name is required");
+        }
+
+        if (mentorDto.getEmail() == null || mentorDto.getEmail().isBlank()) {
+            throw new IllegalArgumentException("Email is required");
+        }
+
+        if (mentorDto.getSchoolId() == null) {
+            throw new IllegalArgumentException("School is required");
+        }
+
+        // 2. NORMALIZE
+        String name = mentorDto.getName().trim();
+        String email = mentorDto.getEmail().trim().toLowerCase();
+
+        if (mentorRepository.existsByEmail(email)) {
+            throw new IllegalStateException("Email already exists");
+        }
+
+        // 3. GET SCHOOL
+        School school = schoolRepository.findById(mentorDto.getSchoolId())
+                .orElseThrow(() -> new IllegalStateException("School not found"));
+
+        // 4. MAP
+        mentorDto.setName(name);
+        mentorDto.setEmail(email);
+
+        Mentor mentor = modelMapper.map(mentorDto, Mentor.class);
+
+        // 5. RELATION + DEFAULTS
+        mentor.setSchool(school);
+        mentor.setPassword(null);
+        mentor.setStatus(MentorStatus.ACTIVE);
+
+        Mentor savedMentor = mentorRepository.save(mentor);
+
+        return mapToDto(savedMentor);
     }
+
+    // public void setPassword(String email, String password) {
+    // Mentor mentor = mentorRepository.findByEmail(email)
+    // .orElseThrow(() -> new IllegalStateException("Mentor not found"));
+
+    // if (mentor.getPassword() != null) {
+    // throw new IllegalStateException("Password already set");
+    // }
+
+    // mentor.setPassword(passwordEncoder.encode(password));
+
+    // mentorRepository.save(mentor);
+    // }
 
     public MentorDto editMentor(Long id, MentorDto mentorDto) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'editMentor'");
+
+        // 1. FIND EXISTING MENTOR
+        Mentor mentor = mentorRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException("Mentor not found with id " + id));
+
+        // 2. BLOCK IF HAS ACTIVE INTERNS
+        boolean hasActivePlacement = mentor.getPlacements()
+                .stream()
+                .anyMatch(p -> p.getStatus() == PlacementStatus.ACTIVE);
+
+        if (hasActivePlacement) {
+            throw new IllegalStateException("Cannot edit mentor with ACTIVE interns");
+        }
+
+        // 3. VALIDATE INPUT (ONLY IF PROVIDED)
+        if (mentorDto.getName() != null && mentorDto.getName().isBlank()) {
+            throw new IllegalArgumentException("Mentor name cannot be blank");
+        }
+
+        if (mentorDto.getEmail() != null && mentorDto.getEmail().isBlank()) {
+            throw new IllegalArgumentException("Email cannot be blank");
+        }
+
+        // 4. NORMALIZE + UPDATE NAME
+        if (mentorDto.getName() != null) {
+            mentor.setName(mentorDto.getName().trim());
+        }
+
+        // 5. NORMALIZE + CHECK EMAIL
+        if (mentorDto.getEmail() != null) {
+
+            String normalizedEmail = mentorDto.getEmail().trim().toLowerCase();
+
+            // check duplicate BUT ignore current mentor
+            boolean emailExists = mentorRepository.existsByEmail(normalizedEmail)
+                    && !mentor.getEmail().equals(normalizedEmail);
+
+            if (emailExists) {
+                throw new IllegalStateException("Email already exists");
+            }
+
+            mentor.setEmail(normalizedEmail);
+        }
+
+        // 6. UPDATE OTHER FIELDS (SAFE)
+        if (mentorDto.getQualificationLevel() != null) {
+            mentor.setQualificationLevel(mentorDto.getQualificationLevel());
+        }
+
+        if (mentorDto.getYearsOfExperience() > 0) {
+            mentor.setYearsOfExperience(mentorDto.getYearsOfExperience());
+        }
+
+        if (mentorDto.getSpecialization() != null) {
+            mentor.setSpecialization(mentorDto.getSpecialization().trim());
+        }
+
+        // 7. UPDATE SCHOOL (OPTIONAL)
+        if (mentorDto.getSchoolId() != null) {
+            School school = schoolRepository.findById(mentorDto.getSchoolId())
+                    .orElseThrow(() -> new IllegalStateException("School not found"));
+
+            mentor.setSchool(school);
+        }
+
+        // 8. SAVE
+        Mentor updated = mentorRepository.save(mentor);
+
+        return mapToDto(updated);
     }
 
+    // RULE: cannot delete if assigned interns
     public void deleteMentor(Long id) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'deleteMentor'");
+        Mentor mentor = mentorRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException("Mentor not found"));
+
+        boolean hasActivePlacement = mentor.getPlacements()
+                .stream()
+                .anyMatch(p -> p.getStatus() == PlacementStatus.ACTIVE);
+
+        if (hasActivePlacement) {
+            throw new IllegalStateException("Cannot delete mentor with ACTIVE placements");
+        }
+        mentorRepository.delete(mentor);
+    }
+
+    private MentorDto mapToDto(Mentor mentor) {
+        MentorDto dto = modelMapper.map(mentor, MentorDto.class);
+
+        // manually map fk
+        if (mentor.getSchool() != null) {
+            dto.setSchoolId(mentor.getSchool().getId());
+            dto.setSchoolName(mentor.getSchool().getName());
+        }
+        // manually map reverse r/ship ids only
+        dto.setPlacementIds(
+                mentor.getPlacements() != null
+                        ? mentor.getPlacements()
+                                .stream()
+                                .map(Placement::getId)
+                                .toList()
+                        : List.of());
+        dto.setFeedbackIds(
+                mentor.getFeedbacks() != null
+                        ? mentor.getFeedbacks()
+                                .stream()
+                                .map(Feedback::getId)
+                                .toList()
+                        : List.of());
+        if (mentor.getEvaluations() != null) {
+            dto.setEvaluationIds(
+                    mentor.getEvaluations()
+                            .stream()
+                            .map(eva -> eva.getId())
+                            .toList());
+        }
+        return dto;
+
     }
 }
+
+// Admin creates mentor
+// ↓
+// Mentor exists (no password)
+// ↓
+// Mentor sets password
+// ↓
+// Mentor logs in
+// ↓
+// Gets JWT token
+// ↓
+// Access protected endpoints
+
+// OPTION 1 (RECOMMENDED) — Admin Creates + Mentor Sets Password
+// Flow:
+// 1. Admin creates mentor
+// {
+// "name": "Mr. Ali",
+// "email": "ali@gmail.com",
+// "schoolId": 1
+// }
+
+// 👉 System:
+
+// saves mentor
+// sets:
+// password = null ❗
+// status = ACTIVE
+// 2. Mentor sets password (FIRST TIME LOGIN)
+
+// 👉 Endpoint:
+
+// POST /auth/set-password
+// {
+// "email": "ali@gmail.com",
+// "password": "123456"
+// }
+
+// 👉 System:
+
+// finds mentor by email
+// encodes password (VERY IMPORTANT)
+// saves it
+// 3. Mentor logs in
+
+// 👉 Endpoint:
+
+// POST /auth/login
+// {
+// "email": "ali@gmail.com",
+// "password": "123456"
+// }
+
+// 👉 System:
+
+// validates password
+// returns JWT token
+// ✔ WHY THIS IS BEST
+// Admin controls who becomes mentor ✅
+// Mentor sets own password ✅
+// Secure & realistic system ✅

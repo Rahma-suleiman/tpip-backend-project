@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.znz.tpip_backend.dto.SchoolDto;
+import com.znz.tpip_backend.model.Mentor;
 import com.znz.tpip_backend.model.Placement;
 import com.znz.tpip_backend.model.School;
 import com.znz.tpip_backend.repository.SchoolRepository;
@@ -100,9 +101,13 @@ public class SchoolService {
                                 .map(Placement::getId)
                                 .toList()
                         : List.of());
-
-      
-
+        dto.setMentorIds(
+                school.getMentors() != null
+                        ? school.getMentors()
+                                .stream()
+                                .map(Mentor::getId)
+                                .toList()
+                        : List.of());
         return dto;
 
     }

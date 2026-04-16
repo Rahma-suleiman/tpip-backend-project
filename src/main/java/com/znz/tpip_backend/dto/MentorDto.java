@@ -14,6 +14,10 @@ public class MentorDto {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long id;
     
+    private String name;
+
+    private String email; 
+    
     private QualificationLevel qualificationLevel;
 
     private int yearsOfExperience;
@@ -23,7 +27,9 @@ public class MentorDto {
     private MentorStatus status;
     
     // fk r/ship
-    // private Long schoolId;
+    private Long schoolId;
+
+    private String schoolName; // Optional: Include school name for easier display in UI
     
     // reverse r/ships
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)

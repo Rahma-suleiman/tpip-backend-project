@@ -85,59 +85,133 @@ public class PlacementService {
         return mapToDto(placement);
     }
 
-    // its like to create/add new placement
-    // assignIntern() → create or update (only before start)
-    public PlacementDto assignOrReassignIntern(AssignRequestDto request) {
-        Intern intern = internRepository.findById(request.getInternId())
-                .orElseThrow(() -> new IllegalStateException("intern not found with id" + request.getInternId()));
-        School school = schoolRepository.findById(request.getSchoolId())
-                .orElseThrow(() -> new IllegalStateException("school not found with id" + request.getSchoolId()));
-        Mentor mentor = mentorRepository.findById(request.getMentorId())
-                .orElseThrow(() -> new IllegalStateException("mentor not found with id" + request.getMentorId()));
+    // // its like to create/add new placement
+    // // assignIntern() → create or update (only before start)
+    // public PlacementDto assignOrReassignIntern(AssignRequestDto request) {
+    // Intern intern = internRepository.findById(request.getInternId())
+    // .orElseThrow(() -> new IllegalStateException("intern not found with id" +
+    // request.getInternId()));
+    // School school = schoolRepository.findById(request.getSchoolId())
+    // .orElseThrow(() -> new IllegalStateException("school not found with id" +
+    // request.getSchoolId()));
+    // Mentor mentor = mentorRepository.findById(request.getMentorId())
+    // .orElseThrow(() -> new IllegalStateException("mentor not found with id" +
+    // request.getMentorId()));
 
-        // check if placement alrdy exists for this intern
-        Placement placement = placementRepository.findByInternId(request.getInternId()).orElse(null);
+    // // check if placement alrdy exists for this intern
+    // Placement placement =
+    // placementRepository.findByInternId(request.getInternId()).orElse(null);
+
+    // if (placement != null) {
+    // // block if internship alrdy started/STRICT RULE: cannot reassign if ACTIVE
+    // if (placement.getStatus() == PlacementStatus.ACTIVE) {
+    // throw new IllegalStateException("Cannot reassign after internship started");
+    // }
+    // // update existing placement
+    // placement.setSchool(school);
+    // placement.setMentor(mentor);
+
+    // } else {
+    // // create new placement/first time assignment
+    // placement = new Placement();
+    // placement.setIntern(intern);
+    // placement.setSchool(school);
+    // placement.setMentor(mentor);
+
+    // // Assigned but not started yet
+    // placement.setAssignedDate(LocalDate.now());
+    // placement.setStatus(PlacementStatus.ASSIGNED);
+
+    // // after assigned when shld intern start internship
+    // // BEST PRACTICE: internship starts later (NOT now)
+    // // placement.setStartDate(null);
+    // // placement.setEndDate(null);
+
+    // }
+
+    // Placement savedPlacement = placementRepository.save(placement);
+    // // 1. manual mapping to dto
+    // // PlacementDto placeResponse = modelMapper.map(savedPlacement,
+    // // PlacementDto.class);
+    // // // manually map fk
+    // // placeResponse.setInternId(savedPlacement.getIntern().getId());
+    // // placeResponse.setSchoolId(savedPlacement.getSchool().getId());
+    // // placeResponse.setMentorId(savedPlacement.getMentor().getId());
+
+    // // return placeResponse;
+
+    // // 2. mapping to dto using helper mapToDto()
+    // return mapToDto(savedPlacement);
+    // }
+
+    public PlacementDto assignOrReassignIntern(AssignRequestDto request) {
+
+        // 1. FETCH DATA
+        Intern intern = internRepository.findById(request.getInternId())
+                .orElseThrow(() -> new IllegalStateException("Intern not found"));
+
+        School school = schoolRepository.findById(request.getSchoolId())
+                .orElseThrow(() -> new IllegalStateException("School not found"));
+
+        Mentor mentor = mentorRepository.findById(request.getMentorId())
+                .orElseThrow(() -> new IllegalStateException("Mentor not found"));
+
+        // 2. 🔥 VALIDATION RULES (VERY IMPORTANT)
+
+        // RULE 1: Mentor must belong to same school
+        if (!mentor.getSchool().getId().equals(school.getId())) {
+            throw new IllegalStateException("Mentor does not belong to selected school");
+        }
+
+        // RULE 2: School capacity check
+        if (school.getCurrentInternCount() >= school.getCapacity()) {
+            throw new IllegalStateException("School has reached maximum capacity");
+        }
+
+        // RULE 3: Mentor should not be overloaded (example limit: 5 interns)
+        long activeInterns = mentor.getPlacements()
+                .stream()
+                .filter(p -> p.getStatus() == PlacementStatus.ACTIVE)
+                .count();
+
+        if (activeInterns >= 5) {
+            throw new IllegalStateException("Mentor already has maximum interns");
+        }
+
+        // 3. CHECK EXISTING PLACEMENT
+        Placement placement = placementRepository
+                .findByInternId(request.getInternId())
+                .orElse(null);
 
         if (placement != null) {
-            // block if internship alrdy started/STRICT RULE: cannot reassign if ACTIVE
+
+            // RULE 4: Cannot reassign ACTIVE internship
             if (placement.getStatus() == PlacementStatus.ACTIVE) {
                 throw new IllegalStateException("Cannot reassign after internship started");
             }
-            // update existing placement
+
+            // UPDATE EXISTING
             placement.setSchool(school);
             placement.setMentor(mentor);
 
         } else {
-            // create new placement/first time assignment
+
+            // CREATE NEW
             placement = new Placement();
             placement.setIntern(intern);
             placement.setSchool(school);
             placement.setMentor(mentor);
 
-            // Assigned but not started yet
             placement.setAssignedDate(LocalDate.now());
             placement.setStatus(PlacementStatus.ASSIGNED);
 
-            // after assigned when shld intern start internship
-            // BEST PRACTICE: internship starts later (NOT now)
-            // placement.setStartDate(null);
-            // placement.setEndDate(null);
-
+            // increase school count ONLY when new placement
+            school.setCurrentInternCount(school.getCurrentInternCount() + 1);
         }
 
-        Placement savedPlacement = placementRepository.save(placement);
-        // 1. manual mapping to dto
-        // PlacementDto placeResponse = modelMapper.map(savedPlacement,
-        // PlacementDto.class);
-        // // manually map fk
-        // placeResponse.setInternId(savedPlacement.getIntern().getId());
-        // placeResponse.setSchoolId(savedPlacement.getSchool().getId());
-        // placeResponse.setMentorId(savedPlacement.getMentor().getId());
+        Placement saved = placementRepository.save(placement);
 
-        // return placeResponse;
-
-        // 2. mapping to dto using helper mapToDto()
-        return mapToDto(savedPlacement);
+        return mapToDto(saved);
     }
 
     // UPDATE ONLY B4 START/ACTIVE
@@ -217,9 +291,12 @@ public class PlacementService {
             throw new IllegalStateException("Cannot delete ACTIVE placement");
         }
 
+        //decrease count
+        School school = placement.getSchool();
+        school.setCurrentInternCount(school.getCurrentInternCount() - 1);
+        
         placementRepository.delete(placement);
     }
-
 
     // This is just a helper (support) method
     // Its job is ONLY ONE thing: Convert a Placement (Entity) → PlacementDto
@@ -264,17 +341,17 @@ public class PlacementService {
 
 // PROJECT FLOW
 // Application Approved
-//         ↓
+// ↓
 // Intern Created
-//         ↓
+// ↓
 // (Admin decides placement)
-//         ↓
+// ↓
 // Assign / Reassign
-//         ↓
+// ↓
 // Placement = ASSIGNED
-//         ↓
+// ↓
 // Start Internship
-//         ↓
+// ↓
 // Placement = ACTIVE
 // ↓
 // No more edits ❌

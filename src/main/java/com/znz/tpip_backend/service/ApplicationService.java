@@ -237,6 +237,7 @@ public class ApplicationService {
     }
 
 }
+
 // FINAL TPIP FLOW (CLEAN ARCHITECTURE)
 // 1. User submits application
 // ↓
@@ -294,9 +295,33 @@ public class ApplicationService {
 // "transcriptFile": "transcript.pdf",
 // "userId": 2
 // }
+// {
+//   "firstName": "Kauthar",
+//   "lastName": "Ali",
+//   "gender": "FEMALE",
+//   "dateOfBirth": "2000-06-15",
+//   "phoneNumber": "0712345678",
+//   "email": "kau@gmail.com",
+//   "address": "Zanzibar",
+//   "educationLevel": "DIPLOMA",
+//   "courseStudied": "Information Technology",
+//   "institutionName": "SUZA",
+//   "graduationYear": 2024,
+//   "qualificationFile": "qualification.pdf",
+//   "preferredRegion": "URBAN_WEST",
+//   "preferredDistrict": "MJINI",
+//   "preferredSchoolType": "PRIMARY",
+//   "applicationDate": "2026-04-16",
+//   "cvFile": "cv.pdf",
+//   "transcriptFile": "transcript.pdf",
+//   "userId": 3
+// }
 // REVIEW
 // {
 //     "status":"APPROVED",
-//     "reviewerName":
-//     "Admin John"
+//     "reviewerName":"Admin John"
+// }
+// {
+//     "status":"APPROVED",
+//     "reviewerName":"Admin Junaid"
 // }

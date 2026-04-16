@@ -81,3 +81,8 @@ public class UserService {
 //   "email": "shuayb@gmail.com",
 //   "password": "shuayb123@"
 // }
+// {
+//   "name": "Kauthar",
+//   "email": "kau@gmail.com",
+//   "password": "kau@123"
+// }

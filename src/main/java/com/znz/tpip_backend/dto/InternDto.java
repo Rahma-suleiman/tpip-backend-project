@@ -6,7 +6,6 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.znz.tpip_backend.enums.EducationLevel;
 import com.znz.tpip_backend.enums.InternStatus;
-import com.znz.tpip_backend.model.Application;
 
 import lombok.Data;
 

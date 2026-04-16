@@ -58,6 +58,6 @@ public class School extends AuditModel<String> {
     @OneToMany(mappedBy = "school", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Placement> placements = new ArrayList<>();
 
-    // @OneToMany(mappedBy = "school", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    // private List<Mentor> mentors = new ArrayList<>();
+    @OneToMany(mappedBy = "school", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Mentor> mentors = new ArrayList<>();
 }

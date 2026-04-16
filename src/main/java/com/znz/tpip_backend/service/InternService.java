@@ -78,7 +78,7 @@ public class InternService {
         intern.setApplication(app);
 
         intern.setStatus(InternStatus.ACTIVE);
-        intern.setStartDate(LocalDate.now());
+        // intern.setStartDate(LocalDate.now());
         intern.setEducationLevel(app.getEducationLevel());
         intern.setSpecialization(app.getCourseStudied());
         intern.setGraduationYear(app.getGraduationYear());
@@ -136,7 +136,7 @@ public class InternService {
             dto.setEvaluationIds(
                     intern.getEvaluations()
                             .stream()
-                            .map(ext -> ext.getId())
+                            .map(eva -> eva.getId())
                             .toList());
         }
         // using Method Reference

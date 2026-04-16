@@ -40,6 +40,6 @@ public class SchoolDto {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private List<Long> placementIds;
 
-    // @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    // private List<Long> mentorIds;
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private List<Long> mentorIds;
 }
