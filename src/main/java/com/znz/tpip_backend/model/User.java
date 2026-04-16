@@ -1,5 +1,7 @@
 package com.znz.tpip_backend.model;
 
+import java.util.List;
+
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -7,7 +9,7 @@ import lombok.Data;
 @Entity
 @Table(name = "users")
 @Inheritance(strategy = InheritanceType.JOINED)
-public class User extends AuditModel<String>{
+public class User extends AuditModel<String> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,6 +23,9 @@ public class User extends AuditModel<String>{
 
     @Column(nullable = false)
     private String password;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Application> applications;
 
     // @Enumerated(EnumType.STRING)
     // private Role role;

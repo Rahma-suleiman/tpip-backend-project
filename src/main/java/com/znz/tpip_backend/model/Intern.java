@@ -32,13 +32,13 @@ public class Intern extends AuditModel<String> {
 
     // fk
     // Intern belongs to a user
-    @OneToOne
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
-    private User user;
+    // @OneToOne
+    // @JoinColumn(name = "user_id", nullable = false, unique = true)
+    // private User user;
 
-    // Intern comes from ONE application
+    // Intern → Application (ONLY) User accessed via Application. so no need to have direct r/ship between Intern → User. It creates redundancy.
     @OneToOne
-    @JoinColumn(name = "application_id", nullable = false)
+    @JoinColumn(name = "application_id", nullable = false,unique = true)
     private Application application;
 
     // reverse r/ship

@@ -282,15 +282,17 @@ public class PlacementService {
 
 // PROJECT FLOW
 // Application Approved
-// ↓
+//         ↓
 // Intern Created
-// ↓
-// Assign / Reassign ✅
-// ↓
+//         ↓
+// (Admin decides placement)
+//         ↓
+// Assign / Reassign
+//         ↓
 // Placement = ASSIGNED
-// ↓
-// Start Internship ✅
-// ↓
+//         ↓
+// Start Internship
+//         ↓
 // Placement = ACTIVE
 // ↓
 // No more edits ❌

@@ -36,5 +36,4 @@ public class PlacementDto {
     private String mentorName;
     private String internName;
 
-    // private Long applicationId;
 }

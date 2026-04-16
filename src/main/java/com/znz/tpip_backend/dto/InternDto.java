@@ -6,6 +6,8 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.znz.tpip_backend.enums.EducationLevel;
 import com.znz.tpip_backend.enums.InternStatus;
+import com.znz.tpip_backend.model.Application;
+
 import lombok.Data;
 
 @Data
@@ -26,10 +28,11 @@ public class InternDto {
 
     private LocalDate endDate;
 
-    // reverse r/ships
-    // @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    // private List<Long> applicationIds;
+    // fk
+    // private Long userId;  It creates redundancy. BCZ: Application already has User . So technically: Intern → Application → User (You could derive user from application.)
+    private Long applicationId;
 
+    // reverse r/ships
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private List<Long> evaluationIds;
 
@@ -45,4 +48,9 @@ public class InternDto {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private List<Long> activityLogIds;
 
+     // ===== Names (for frontend display) =====
+    // private String userName;
+    // private String userEmail;
+    private String applicantName;
+    private String applicantEmail;
 }

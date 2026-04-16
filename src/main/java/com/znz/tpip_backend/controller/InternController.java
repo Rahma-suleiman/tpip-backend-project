@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.znz.tpip_backend.dto.InternDto;
+import com.znz.tpip_backend.model.Application;
+import com.znz.tpip_backend.model.Intern;
 import com.znz.tpip_backend.service.InternService;
 
 @RestController
@@ -29,18 +31,13 @@ public class InternController {
         return ResponseEntity.ok(intern);
     }
 
-    @PostMapping
-    public ResponseEntity<InternDto> addIntern(@RequestBody InternDto internDto) {
-        InternDto intern = internService.addIntern(internDto);
-        return new ResponseEntity<>(intern, HttpStatus.CREATED);
-    }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<InternDto> editIntern(@PathVariable Long id,
-            @RequestBody InternDto internDto) {
-        InternDto intern = internService.editIntern(id, internDto);
-        return new ResponseEntity<>(intern, HttpStatus.OK);
-    }
+    // @PutMapping("/{id}")
+    // public ResponseEntity<InternDto> editIntern(@PathVariable Long id,
+    //         @RequestBody InternDto internDto) {
+    //     InternDto intern = internService.editIntern(id, internDto);
+    //     return new ResponseEntity<>(intern, HttpStatus.OK);
+    // }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteIntern(@PathVariable Long id) {

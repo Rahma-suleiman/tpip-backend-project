@@ -8,7 +8,6 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.*;
 
 import com.znz.tpip_backend.dto.ApplicationDto;
-import com.znz.tpip_backend.dto.InternDto;
 import com.znz.tpip_backend.enums.ApplicationStatus;
 import com.znz.tpip_backend.enums.InternStatus;
 import com.znz.tpip_backend.model.Application;
@@ -29,8 +28,7 @@ public class ApplicationService {
     private final UserRepository userRepository;
     private final InternRepository internRepository;
     private final ModelMapper modelMapper;
-
-
+    private final InternService internService;
 
     public List<ApplicationDto> getAllApplications() {
         List<Application> applications = applicationRepository.findAll();
@@ -73,7 +71,7 @@ public class ApplicationService {
                 .orElseThrow(() -> new IllegalStateException("user not found with id" + applicationDto.getUserId()));
 
         // prevent duplicate pending applications for the same user and also if has
-        // alrdy applied byt status is rejected,  re-application is allowed
+        // alrdy applied byt status is rejected, re-application is allowed
         boolean hasPendingApplication = applicationRepository.existsByUserIdAndStatus(user.getId(),
                 ApplicationStatus.PENDING);
 
@@ -82,7 +80,8 @@ public class ApplicationService {
         }
 
         // Block application if already intern,re-application not allowed
-        boolean isAlreadyIntern = internRepository.existsByUserIdAndStatus(user.getId(), InternStatus.ACTIVE);
+        boolean isAlreadyIntern = internRepository.existsByApplication_User_IdAndStatus(user.getId(),
+                InternStatus.ACTIVE);
         if (isAlreadyIntern) {
             throw new IllegalStateException("User is already an active intern and cannot apply again");
         }
@@ -165,91 +164,139 @@ public class ApplicationService {
         applicationRepository.delete(app);
     }
 
-    //  we used @Transactional BCZ : i did - APPROVE application → CREATE intern
-    //If intern creation fails → application already approved (data inconsistency)
-    @Transactional  // ensures both operations succeed or fail together
+    // we used @Transactional BCZ : i did - APPROVE application → CREATE intern
+    // If intern creation fails → application already approved (data inconsistency)
+    @Transactional // ensures both operations succeed or fail together
     public ApplicationDto reviewApplication(Long id, ApplicationStatus status, String reviewerName) {
 
-        // 1. Find application
-        Application app = applicationRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("Application not found with id " + id));
 
-        // 2. Prevent double review of already processed applications(app shld b reviewed once)
-        if (app.getStatus() != ApplicationStatus.PENDING) {
-            throw new IllegalStateException("Application already reviewed");
-        }
+            // 1. Find application
+            Application app = applicationRepository.findById(id)
+                    .orElseThrow(() -> new IllegalStateException("Application not found with id " + id));
 
-        // 3. Update admin review data
-        app.setStatus(status);
-        app.setReviewedBy(reviewerName);
-        app.setReviewDate(LocalDate.now());
-
-        applicationRepository.save(app);
-
-        Intern savedIntern = null;
-        // 4. IF APPROVED → create intern
-        if (status == ApplicationStatus.APPROVED) {
-
-             if (app.getUser() == null) {
-                throw new IllegalStateException("User missing in application");
+            // 2. Prevent double review of already processed applications(app shld b
+            // reviewed once)
+            if (app.getStatus() != ApplicationStatus.PENDING) {
+                throw new IllegalStateException("Application already reviewed");
             }
 
-            Intern intern = new Intern();
-            // r/ships
-            intern.setUser(app.getUser());
-            intern.setApplication(app);
+            // 3. Update admin review data
+            app.setStatus(status);
+            app.setReviewedBy(reviewerName);
+            app.setReviewDate(LocalDate.now());
 
-            intern.setStartDate(LocalDate.now());
-            intern.setStatus(InternStatus.ACTIVE);
-            intern.setEducationLevel(app.getEducationLevel());
-            intern.setSpecialization(app.getCourseStudied());
-            intern.setGraduationYear(app.getGraduationYear());
-
-            savedIntern = internRepository.save(intern);
-            
-            app.setIntern(savedIntern);
             applicationRepository.save(app);
-            // TODO: assign school + mentor (later step in flow)
 
-        }
+            Intern savedIntern = null;
+            // 4. IF APPROVED → create intern
+            if (status == ApplicationStatus.APPROVED) {
 
-        // 5. IF REJECTED → allow re-application (handled by logic in addApplication)
-        // nothing extra needed here
+                if (app.getUser() == null) {
+                    throw new IllegalStateException("User missing in application");
+                }
 
-        // 6. Return DTO
-        ApplicationDto dto = modelMapper.map(app, ApplicationDto.class);
-        dto.setUserId(app.getUser().getId());
-        dto.setInternId(savedIntern != null ? savedIntern.getId() : null);
+                if (app.getIntern() != null) {
+                    throw new IllegalStateException("Application already has an intern");
+                }
 
-        return dto;
+                // move this part to internService in createInternFromApplication()
+
+                // Intern intern = new Intern();
+                // intern.setApplication(app);
+
+                // intern.setStatus(InternStatus.ACTIVE);
+                // intern.setStartDate(LocalDate.now());
+                // intern.setEducationLevel(app.getEducationLevel());
+                // intern.setSpecialization(app.getCourseStudied());
+                // intern.setGraduationYear(app.getGraduationYear());
+
+                // savedIntern = internRepository.save(intern);
+
+                // BEST WAY: BCZ of Separation of responsibilities : reviewApplication()= for
+                // admin decision(approave/reject) while createInternFromApplication()= for
+                // intern creation logic
+                savedIntern = internService.createInternFromApplication(app);
+
+                // TODO: assign school + mentor (later step in flow)
+                
+            }
+            applicationRepository.save(app);
+
+            // 5. IF REJECTED → allow re-application (handled by logic in addApplication)
+            // nothing extra needed here
+
+            // 6. Return DTO
+            ApplicationDto dto = modelMapper.map(app, ApplicationDto.class);
+            // dto.setUserId(app.getUser().getId() != null ? app.getUser().getId() : null);
+            dto.setUserId(app.getUser() != null ? app.getUser().getId() : null);
+            // dto.setUserId(app.getUser() != null ? app.getUser().getId() : null);
+            dto.setInternId(savedIntern != null ? savedIntern.getId() : null);
+
+            return dto;
+     
     }
 
 }
+// FINAL TPIP FLOW (CLEAN ARCHITECTURE)
+// 1. User submits application
+// ↓
+// 2. Admin reviews application
+// ↓
+// 3. If APPROVED:
+// ↓
+// 4. InternService.createInternFromApplication()
+// ↓
+// 5. Admin assigns school/mentor (PlacementService)
+// ↓
+// 6. Internship starts
+
 // SUBMIT APPLICATION
 // {
-//   "firstName": "Rahma",
-//   "lastName": "Suleiman",
-//   "gender": "FEMALE",
-//   "dateOfBirth": "2000-04-15",
-//   "phoneNumber": "0712345678",
-//   "email": "rahma@gmail.com",
-//   "address": "Dar es Salaam",
-//   "educationLevel": "DIPLOMA",
-//   "courseStudied": "Computer Science",
-//   "institutionName": "SUZA",
-//   "graduationYear": 2024,
-//   "qualificationFile": "file.pdf",
-//   "preferredRegion": "URBAN_WEST",
-//   "preferredDistrict": "MJINI",
-//   "preferredSchoolType": "PRIMARY",
-//   "applicationDate": "2026-04-15",
-//   "cvFile": "cv.pdf",
-//   "transcriptFile": "transcript.pdf",
-//   "userId": 1
+// "firstName": "Rahma",
+// "lastName": "Suleiman",
+// "gender": "FEMALE",
+// "dateOfBirth": "2000-04-15",
+// "phoneNumber": "0712345678",
+// "email": "rahma@gmail.com",
+// "address": "Dar es Salaam",
+// "educationLevel": "DEGREE",
+// "courseStudied": "Computer Science",
+// "institutionName": "SUZA",
+// "graduationYear": 2024,
+// "qualificationFile": "file.pdf",
+// "preferredRegion": "URBAN_WEST",
+// "preferredDistrict": "MJINI",
+// "preferredSchoolType": "PRIMARY",
+// "applicationDate": "2026-04-15",
+// "cvFile": "cv.pdf",
+// "transcriptFile": "transcript.pdf",
+// "userId": 1
 // }
 
+// {
+// "firstName": "Shuayb",
+// "lastName": "Ali",
+// "gender": "MALE",
+// "dateOfBirth": "2000-05-10",
+// "phoneNumber": "0712345678",
+// "email": "shuayb@gmail.com",
+// "address": "Zanzibar",
+// "educationLevel": "DEGREE",
+// "courseStudied": "Information Technology",
+// "institutionName": "SUZA",
+// "graduationYear": 2024,
+// "qualificationFile": "qualification.pdf",
+// "preferredRegion": "URBAN_WEST",
+// "preferredDistrict": "MJINI",
+// "preferredSchoolType": "PRIMARY",
+// "applicationDate": "2026-04-15",
+// "cvFile": "cv.pdf",
+// "transcriptFile": "transcript.pdf",
+// "userId": 2
+// }
 // REVIEW
 // {
-//   "status": "APPROVED",
-//   "reviewerName": "Admin John"
+//     "status":"APPROVED",
+//     "reviewerName":
+//     "Admin John"
 // }
