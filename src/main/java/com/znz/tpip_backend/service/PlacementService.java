@@ -225,24 +225,6 @@ public class PlacementService {
     // Its job is ONLY ONE thing: Convert a Placement (Entity) → PlacementDto
     private PlacementDto mapToDto(Placement placement) {
         PlacementDto dto = modelMapper.map(placement, PlacementDto.class);
-
-        // 1. manually set fk ids
-        // if (placement.getIntern() != null) {
-        // dto.setInternId(placement.getIntern().getId());
-        // }
-        // if (placement.getSchool() != null) {
-        // dto.setSchoolId(placement.getSchool().getId());
-        // }
-        // if (placement.getMentor() != null) {
-        // dto.setMentorId(placement.getMentor().getId());
-        // }
-        // result in JSON RESPONSE
-        // {
-        // "internId": 1,
-        // "schoolId": 2,
-        // "mentorId": 3
-        // }
-
         // 2. manually set fk ids(BESST IDS +NAMES in JSON Response"
         Intern intern = placement.getIntern();
 

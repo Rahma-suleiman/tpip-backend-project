@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 
 import com.znz.tpip_backend.dto.InternDto;
 import com.znz.tpip_backend.enums.InternStatus;
-import com.znz.tpip_backend.enums.PlacementStatus;
 import com.znz.tpip_backend.model.Application;
 import com.znz.tpip_backend.model.Extension;
 import com.znz.tpip_backend.model.Intern;

@@ -26,9 +26,9 @@ public class SchoolDto {
 
     private Set<SchoolType> schoolTypes;
 
-    private int capacity;
+    private int capacity;  //max interns allowed
     
-    private int currentInternCount;
+    private int currentInternCount; //current number of interns placed in the school/how many assigned
 
     private String phoneNumber;
 

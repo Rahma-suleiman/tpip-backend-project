@@ -8,6 +8,8 @@ import com.znz.tpip_backend.model.School;
 @Repository
 public interface SchoolRepository extends JpaRepository<School, Long> {
 
+    boolean existsByNameIgnoreCase(String normalizedName);
+
     
 } 
 

@@ -30,8 +30,8 @@ public class SchoolController {
     }
 
     @PostMapping
-    public ResponseEntity<SchoolDto> addSchool(@RequestBody SchoolDto schoolDto) {
-        SchoolDto schl = schoolService.addSchool(schoolDto);
+    public ResponseEntity<SchoolDto> createSchool(@RequestBody SchoolDto schoolDto) {
+        SchoolDto schl = schoolService.createSchool(schoolDto);
         return new ResponseEntity<>(schl, HttpStatus.CREATED);
     }
 
