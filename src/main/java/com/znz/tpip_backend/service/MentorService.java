@@ -338,3 +338,71 @@ public class MentorService {
 // Admin controls who becomes mentor ✅
 // Mentor sets own password ✅
 // Secure & realistic system ✅
+
+
+
+
+// /ADD MENTOR 
+// {
+//     "name": "Ali Hassan",
+//     "email": "ali.hassan@gmail.com",
+//     "qualificationLevel": "DEGREE",
+//     "yearsOfExperience": 5,
+//     "specialization": "Mathematics",
+//     "status": "ACTIVE",
+//     "schoolId": 1
+//   }
+//  {
+//     "name": "Fatma Suleiman",
+//     "email": "fatma.suleiman@gmail.com",
+//     "qualificationLevel": "DIPLOMA",
+//     "yearsOfExperience": 3,
+//     "specialization": "English",
+//     "status": "ACTIVE",
+//     "schoolId": 2
+//   }
+//  {
+//     "name": "Hassan Omar",
+//     "email": "hassan.omar@gmail.com",
+//     "qualificationLevel": "DEGREE",
+//     "yearsOfExperience": 7,
+//     "specialization": "Physics",
+//     "status": "ACTIVE",
+//     "schoolId": 3
+//   }
+// {
+//     "name": "Salma Ali",
+//     "email": "salma.ali@gmail.com",
+//     "qualificationLevel": "DEGREE",
+//     "yearsOfExperience": 6,
+//     "specialization": "Biology",
+//     "status": "ACTIVE",
+//     "schoolId": 4
+//   }
+//   {
+//     "name": "Juma Abdallah",
+//     "email": "juma.abdallah@gmail.com",
+//     "qualificationLevel": "DIPLOMA",
+//     "yearsOfExperience": 4,
+//     "specialization": "Geography",
+//     "status": "ACTIVE",
+//     "schoolId": 5
+//   }
+// {
+//     "name": "Asha Mohammed",
+//     "email": "asha.mohammed@gmail.com",
+//     "qualificationLevel": "DEGREE",
+//     "yearsOfExperience": 8,
+//     "specialization": "Chemistry",
+//     "status": "ACTIVE",
+//     "schoolId": 6
+//   }
+// {
+//     "name": "Khalid Said",
+//     "email": "khalid.said@gmail.com",
+//     "qualificationLevel": "DIPLOMA",
+//     "yearsOfExperience": 2,
+//     "specialization": "History",
+//     "status": "ACTIVE",
+//     "schoolId": 1
+//   }
