@@ -32,9 +32,15 @@ public class Feedback extends AuditModel<String> {
     @JoinColumn(name = "mentor_id", nullable = false)
     private Mentor mentor;
 
+     // which intern is evaluated 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "intern_id", nullable = false)
+    private Intern intern;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "placement_id", nullable = false)
     private Placement placement;
+
 
     
 }

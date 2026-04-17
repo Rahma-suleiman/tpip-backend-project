@@ -11,17 +11,23 @@ public class FeedbackDto {
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long id;
-
+    
     private int rating;
-
+    
     private String comment;
-
+    
     private LocalDate date;
-
+    
     // forward r/ship
     private Long mentorId;
-
-    private Long palcementId;
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String mentorName;
     
-    // private Long intern; //cant access feedback
+    private Long internId; 
+    
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String internName;
+
+    private Long placementId;
+    
 }

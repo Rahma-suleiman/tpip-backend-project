@@ -44,7 +44,7 @@ public class PlacementController {
     // }
     // OR (BELOW IS BEST)
     @PostMapping
-    public ResponseEntity<PlacementDto> assignOrReassignIntern(@RequestBody AssignRequestDto request){
+    public ResponseEntity<PlacementDto> createPlacement(@RequestBody AssignRequestDto request){
         PlacementDto placement = placementService.assignOrReassignIntern(request);  
         return new ResponseEntity<>(placement, HttpStatus.CREATED);
     }

@@ -159,21 +159,39 @@ public class PlacementService {
         // 2. 🔥 VALIDATION RULES (VERY IMPORTANT)
 
         // RULE 1: Mentor must belong to same school
-        if (!mentor.getSchool().getId().equals(school.getId())) {
+
+        if (mentor.getSchool() == null ||
+                !mentor.getSchool().getId().equals(school.getId())) {
             throw new IllegalStateException("Mentor does not belong to selected school");
         }
 
         // RULE 2: School capacity check
-        if (school.getCurrentInternCount() >= school.getCapacity()) {
-            throw new IllegalStateException("School has reached maximum capacity");
+        int current = school.getCurrentInternCount();
+        int capacity = school.getCapacity();
+
+        // int current = school.getCurrentInternCount() != null
+        // ? school.getCurrentInternCount()
+        // : 0;
+
+        // int capacity = school.getCapacity() != null
+        // ? school.getCapacity()
+        // : 0;
+        if (current >= capacity) {
+            throw new IllegalStateException("School has reached maximum intern capacity");
         }
-
         // RULE 3: Mentor should not be overloaded (example limit: 5 interns)
-        long activeInterns = mentor.getPlacements()
-                .stream()
-                .filter(p -> p.getStatus() == PlacementStatus.ACTIVE)
-                .count();
-
+        // long activeInterns = (mentor.getPlacements() != null)
+        // ? mentor.getPlacements()
+        // .stream()
+        // .filter(p -> p.getStatus() == PlacementStatus.ACTIVE)
+        // .count()
+        // : 0;
+        long activeInterns = mentor.getPlacements() == null
+                ? 0
+                : mentor.getPlacements().stream()
+                        .filter(p -> p.getStatus() == PlacementStatus.ACTIVE)
+                        .count();
+                        
         if (activeInterns >= 5) {
             throw new IllegalStateException("Mentor already has maximum interns");
         }
@@ -206,6 +224,7 @@ public class PlacementService {
             placement.setStatus(PlacementStatus.ASSIGNED);
 
             // increase school count ONLY when new placement
+
             school.setCurrentInternCount(school.getCurrentInternCount() + 1);
         }
 
@@ -352,6 +371,16 @@ public class PlacementService {
 
 }
 
+// {
+//   "internId": 1,
+//   "schoolId": 2,
+//   "mentorId": 5
+// }
+// {
+//   "internId": 2,
+//   "schoolId": 1,
+//   "mentorId": 4
+// }
 // PROJECT FLOW
 // Application Approved
 // ↓

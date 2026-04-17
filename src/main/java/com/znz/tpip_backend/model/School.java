@@ -47,7 +47,7 @@ public class School extends AuditModel<String> {
 
     private int capacity; // max interns allowed
 
-    private int currentInternCount;
+    private int currentInternCount = 0;
 
     private String phoneNumber;
 

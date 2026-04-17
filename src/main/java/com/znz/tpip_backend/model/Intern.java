@@ -3,6 +3,7 @@ package com.znz.tpip_backend.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.znz.tpip_backend.enums.*;
@@ -56,4 +57,7 @@ public class Intern extends AuditModel<String> {
 
     @OneToMany(mappedBy = "intern", cascade = CascadeType.ALL)
     private List<InternActivityLog> activityLogs;
+
+    @OneToMany(mappedBy = "intern", fetch = FetchType.LAZY)
+private List<Feedback> feedbacks = new ArrayList<>();  //Do NOT include feedback in InternDto to hide it in responses. Feedback should be accessed via FeedbackController, not via InternController. This way we can control access to feedback data and ensure that only authorized users (e.g., mentors) can view it.
 }

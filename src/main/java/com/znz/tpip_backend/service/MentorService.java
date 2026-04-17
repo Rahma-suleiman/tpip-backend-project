@@ -3,11 +3,9 @@ package com.znz.tpip_backend.service;
 import java.util.List;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.znz.tpip_backend.dto.MentorDto;
-import com.znz.tpip_backend.dto.SchoolDto;
 import com.znz.tpip_backend.enums.MentorStatus;
 import com.znz.tpip_backend.enums.PlacementStatus;
 import com.znz.tpip_backend.model.Feedback;
