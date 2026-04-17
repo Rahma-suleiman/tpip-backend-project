@@ -1,41 +1,441 @@
+// package com.znz.tpip_backend.service;
+
+// import java.time.LocalDate;
+// import java.util.List;
+
+// import org.modelmapper.ModelMapper;
+// import org.springframework.stereotype.Service;
+
+// import com.znz.tpip_backend.dto.InternActivityLogDto;
+// import com.znz.tpip_backend.enums.ActivityLogStatus;
+// import com.znz.tpip_backend.enums.PlacementStatus;
+// import com.znz.tpip_backend.model.Intern;
+// import com.znz.tpip_backend.model.InternActivityLog;
+// import com.znz.tpip_backend.model.Placement;
+// import com.znz.tpip_backend.repository.InternActivityLogRepository;
+// import com.znz.tpip_backend.repository.InternRepository;
+
+// import lombok.RequiredArgsConstructor;
+
+// @Service
+// @RequiredArgsConstructor
+// public class InternActivityLogService {
+
+//     private final InternActivityLogRepository internActivityLogRepository;
+//     private final ModelMapper modelMapper;
+//     private final InternRepository internRepository;
+
+//     // mentors and admin can access all logs, interns can only access their own logs
+//     // (enforced in controller layer by checking if internId in log matches internId
+//     // in JWT token)
+//     public List<InternActivityLogDto> getAllActivityLogs() {
+//         return internActivityLogRepository.findAll().stream()
+//                 .map(this::mapToDto)
+//                 .toList();
+//     }
+
+//     public InternActivityLogDto getActivityLogById(Long id) {
+//         InternActivityLog log = internActivityLogRepository.findById(id)
+//                 .orElseThrow(() -> new RuntimeException("Activity log not found"));
+//         return mapToDto(log);
+//     }
+
+//     public InternActivityLogDto addActivityLog(InternActivityLogDto dto) {
+//         // fetch intern to ensure intern exists and is assigned to placement (only
+//         // assigned interns can submit logs)
+//         Intern intern = internRepository.findById(dto.getInternId())
+//                 .orElseThrow(() -> new RuntimeException("Intern not found"));
+//         // GET PLACEMENT (to validate intern is assigned)
+//         Placement placement = intern.getPlacement();
+
+//         if (placement == null) {
+//             throw new IllegalStateException("Intern is not assigned to any placement");
+//         }
+//         if (placement.getStatus() != PlacementStatus.ACTIVE) {
+//             throw new IllegalStateException("Internship has not started yet");
+//         }
+//         InternActivityLog log = new InternActivityLog();
+
+//         log.setIntern(intern);
+//         log.setDate(dto.getDate() != null ? dto.getDate() : LocalDate.now()); // default to today if not provided
+//         log.setSubject(dto.getSubject());
+//         log.setTopicTaught(dto.getTopicTaught());
+//         log.setClassLevel(dto.getClassLevel());
+//         log.setActivitiesDone(dto.getActivitiesDone());
+//         log.setChallenges(dto.getChallenges());
+//         if (dto.getHoursSpent() == null || dto.getHoursSpent() <= 0) {
+//             throw new IllegalArgumentException("Hours spent must be greater than 0");
+//         }
+//         log.setHoursSpent(dto.getHoursSpent());
+
+//         // SYSTEM CONTROLLED FIELDS
+//         // log.setStatus(ActivityLogStatus.SUBMITTED); // default status
+//         log.setStatus(ActivityLogStatus.DRAFT); // default status
+//         log.setReviewDate(null);
+//         log.setMentorComment(null);
+
+//         InternActivityLog savedLog = internActivityLogRepository.save(log);
+//         return mapToDto(savedLog);
+//     }
+
+//     // SUBMIT (INTERN ACTION ONLY)
+//     public InternActivityLogDto submitLog(Long id, Long internId) {
+
+//         InternActivityLog log = internActivityLogRepository.findById(id)
+//                 .orElseThrow(() -> new RuntimeException("Activity log not found"));
+
+//         if (!log.getIntern().getId().equals(internId)) {
+//             throw new IllegalStateException("You can only submit your own logs");
+//         }
+
+//         // ✅ ONLY DRAFT can be submitted
+//         if (log.getStatus() != ActivityLogStatus.DRAFT) {
+//             throw new IllegalStateException("Only draft logs can be submitted");
+//         }
+
+//         log.setStatus(ActivityLogStatus.SUBMITTED);
+
+//         return mapToDto(internActivityLogRepository.save(log));
+//     }
+
+//     // EDIT (ONLY DRAFT OR NEEDS REVISION)
+
+//     public InternActivityLogDto editActivityLog(Long id, InternActivityLogDto dto) {
+
+//         InternActivityLog log = internActivityLogRepository.findById(id)
+//                 .orElseThrow(() -> new RuntimeException("Activity log not found"));
+//         if (dto.getInternId() == null ||
+//                 !log.getIntern().getId().equals(dto.getInternId())) {
+//             throw new IllegalStateException("You can only edit your own logs");
+//         }
+
+//         // ✅ ONLY DRAFT can be edited
+//         if (log.getStatus() != ActivityLogStatus.DRAFT &&
+//                 log.getStatus() != ActivityLogStatus.NEEDS_REVISION) {
+//             throw new IllegalStateException("Only draft logs can be edited");
+//         }
+
+//         if (dto.getDate() != null)
+//             log.setDate(dto.getDate());
+//         if (dto.getSubject() != null)
+//             log.setSubject(dto.getSubject());
+//         if (dto.getTopicTaught() != null)
+//             log.setTopicTaught(dto.getTopicTaught());
+//         if (dto.getClassLevel() != null)
+//             log.setClassLevel(dto.getClassLevel());
+//         if (dto.getActivitiesDone() != null)
+//             log.setActivitiesDone(dto.getActivitiesDone());
+//         if (dto.getChallenges() != null)
+//             log.setChallenges(dto.getChallenges());
+//         if (dto.getHoursSpent() > 0)
+//             log.setHoursSpent(dto.getHoursSpent());
+
+//         InternActivityLog updatedLog = internActivityLogRepository.save(log);
+//         log.setStatus(ActivityLogStatus.SUBMITTED);
+//         return mapToDto(updatedLog);
+//     }
+
+//     // MENTOR REVIEW (ONLY PLACE WHERE FINAL STATUS IS SET)
+//     public InternActivityLogDto reviewActivityLog(Long id, Long mentorId,
+//             String mentorComment, ActivityLogStatus status) {
+
+//         if (status != ActivityLogStatus.APPROVED &&
+//                 status != ActivityLogStatus.NEEDS_REVISION &&
+//                 status != ActivityLogStatus.REJECTED) {
+//             throw new IllegalStateException("Invalid review status");
+//         }
+
+//         InternActivityLog log = internActivityLogRepository.findById(id)
+//                 .orElseThrow(() -> new RuntimeException("Activity log not found"));
+
+//         Placement placement = log.getIntern().getPlacement();
+
+//         if (placement == null || placement.getMentor() == null) {
+//             throw new IllegalStateException("No mentor assigned to this intern");
+//         }
+
+//         if (!placement.getMentor().getId().equals(mentorId)) {
+//             throw new IllegalStateException("You are not allowed to review this log");
+//         }
+
+//         if (log.getStatus() != ActivityLogStatus.SUBMITTED) {
+//             throw new IllegalStateException("Only submitted logs can be reviewed");
+//         }
+
+//         log.setMentorComment(mentorComment);
+//         log.setReviewDate(LocalDate.now());
+
+//         // HANDLE REVISION FLOW PROPERLY
+//         if (status == ActivityLogStatus.NEEDS_REVISION) {
+//             log.setStatus(ActivityLogStatus.DRAFT); // back to editable state
+//         } else {
+//             log.setStatus(status); // APPROVED or REJECTED
+//         }
+
+//         return mapToDto(internActivityLogRepository.save(log));
+//     }
+
+//     // DELETE (ONLY DRAFT LOGS)
+//     public void deleteActivityLog(Long id) {
+
+//         InternActivityLog log = internActivityLogRepository.findById(id)
+//                 .orElseThrow(() -> new IllegalStateException("Activity log not found"));
+
+//         if (log.getStatus() != ActivityLogStatus.DRAFT) {
+//             throw new IllegalStateException("Only draft logs can be deleted");
+//         }
+
+//         internActivityLogRepository.delete(log);
+//     }
+
+//     private InternActivityLogDto mapToDto(InternActivityLog log) {
+//         InternActivityLogDto dto = modelMapper.map(log, InternActivityLogDto.class);
+
+//         // Manually set fk fields
+//         if (log.getIntern() != null) {
+
+//             dto.setInternId(log.getIntern().getId());
+
+//             // Manually set read-only fields
+//             if (log.getIntern().getApplication() != null) {
+//                 dto.setInternName(
+//                         log.getIntern().getApplication().getFirstName() + " " +
+//                                 log.getIntern().getApplication().getLastName());
+//             }
+
+//             if (log.getIntern().getPlacement() != null) {
+//                 if (log.getIntern().getPlacement().getMentor() != null) {
+//                     dto.setMentorId(log.getIntern().getPlacement().getMentor().getId());
+//                     dto.setMentorName(log.getIntern().getPlacement().getMentor().getName());
+//                 }
+//                 if (log.getIntern().getPlacement().getSchool() != null) {
+//                     dto.setSchoolId(log.getIntern().getPlacement().getSchool().getId());
+//                     dto.setSchoolName(log.getIntern().getPlacement().getSchool().getName());
+//                 }
+//             }
+//         }
+//         return dto;
+//     }
+
+// }
 package com.znz.tpip_backend.service;
 
+import java.time.LocalDate;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import com.znz.tpip_backend.dto.InternActivityLogDto;
+import com.znz.tpip_backend.enums.ActivityLogStatus;
+import com.znz.tpip_backend.enums.PlacementStatus;
+import com.znz.tpip_backend.model.Intern;
+import com.znz.tpip_backend.model.InternActivityLog;
+import com.znz.tpip_backend.model.Placement;
 import com.znz.tpip_backend.repository.InternActivityLogRepository;
+import com.znz.tpip_backend.repository.InternRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class InternActivityLogService {
-    
-    @Autowired
-    private InternActivityLogRepository internActivityLogRepository;
 
+    private final InternActivityLogRepository internActivityLogRepository;
+    private final ModelMapper modelMapper;
+    private final InternRepository internRepository;
+
+    // GET ALL LOGS
     public List<InternActivityLogDto> getAllActivityLogs() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getAllActivityLogs'");
+        return internActivityLogRepository.findAll()
+                .stream()
+                .map(this::mapToDto)
+                .toList();
     }
 
+    // GET BY ID
     public InternActivityLogDto getActivityLogById(Long id) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getActivityLogById'");
+        InternActivityLog log = internActivityLogRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Activity log not found"));
+        return mapToDto(log);
     }
 
-    public InternActivityLogDto addActivityLog(InternActivityLogDto internActivityLogDto) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'addActivityLog'");
+    // CREATE LOG → DRAFT
+    public InternActivityLogDto addActivityLog(InternActivityLogDto dto) {
+
+        Intern intern = internRepository.findById(dto.getInternId())
+                .orElseThrow(() -> new RuntimeException("Intern not found"));
+
+        Placement placement = intern.getPlacement();
+
+        if (placement == null) {
+            throw new IllegalStateException("Intern is not assigned to any placement");
+        }
+
+        if (placement.getStatus() != PlacementStatus.ACTIVE) {
+            throw new IllegalStateException("Internship has not started yet");
+        }
+
+        if (dto.getHoursSpent() <= 0) {
+            throw new IllegalArgumentException("Hours spent must be greater than 0");
+        }
+
+        InternActivityLog log = new InternActivityLog();
+        log.setIntern(intern);
+        log.setDate(dto.getDate() != null ? dto.getDate() : LocalDate.now());
+
+        log.setSubject(dto.getSubject());
+        log.setTopicTaught(dto.getTopicTaught());
+        log.setClassLevel(dto.getClassLevel());
+        log.setActivitiesDone(dto.getActivitiesDone());
+        log.setChallenges(dto.getChallenges());
+        log.setHoursSpent(dto.getHoursSpent());
+
+        // SYSTEM CONTROLLED
+        log.setStatus(ActivityLogStatus.DRAFT);
+        log.setReviewDate(null);
+        log.setMentorComment(null);
+
+        return mapToDto(internActivityLogRepository.save(log));
     }
 
-    public InternActivityLogDto editActivityLog(Long id, InternActivityLogDto internActivityLogDto) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'editActivityLog'");
+    // SUBMIT → SUBMITTED
+    public InternActivityLogDto submitLog(Long id, Long internId) {
+
+        InternActivityLog log = internActivityLogRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Activity log not found"));
+
+        if (!log.getIntern().getId().equals(internId)) {
+            throw new IllegalStateException("You can only submit your own logs");
+        }
+
+        if (log.getStatus() != ActivityLogStatus.DRAFT) {
+            throw new IllegalStateException("Only draft logs can be submitted");
+        }
+
+        log.setStatus(ActivityLogStatus.SUBMITTED);
+
+        return mapToDto(internActivityLogRepository.save(log));
     }
 
+    // EDIT → ONLY DRAFT OR NEEDS_REVISION
+    public InternActivityLogDto editActivityLog(Long id, InternActivityLogDto dto) {
+
+        InternActivityLog log = internActivityLogRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Activity log not found"));
+
+        if (dto.getInternId() == null ||
+                !log.getIntern().getId().equals(dto.getInternId())) {
+            throw new IllegalStateException("You can only edit your own logs");
+        }
+
+        if (log.getStatus() != ActivityLogStatus.DRAFT &&
+                log.getStatus() != ActivityLogStatus.NEEDS_REVISION) {
+            throw new IllegalStateException("Only draft or revision logs can be edited");
+        }
+
+        if (dto.getDate() != null) log.setDate(dto.getDate());
+        if (dto.getSubject() != null) log.setSubject(dto.getSubject());
+        if (dto.getTopicTaught() != null) log.setTopicTaught(dto.getTopicTaught());
+        if (dto.getClassLevel() != null) log.setClassLevel(dto.getClassLevel());
+        if (dto.getActivitiesDone() != null) log.setActivitiesDone(dto.getActivitiesDone());
+        if (dto.getChallenges() != null) log.setChallenges(dto.getChallenges());
+        if (dto.getHoursSpent() > 0) log.setHoursSpent(dto.getHoursSpent());
+
+        return mapToDto(internActivityLogRepository.save(log));
+    }
+
+    // MENTOR REVIEW
+    public InternActivityLogDto reviewActivityLog(Long id, Long mentorId,
+            String mentorComment, ActivityLogStatus status) {
+
+        if (status != ActivityLogStatus.APPROVED &&
+                status != ActivityLogStatus.NEEDS_REVISION &&
+                status != ActivityLogStatus.REJECTED) {
+            throw new IllegalStateException("Invalid review status");
+        }
+
+        InternActivityLog log = internActivityLogRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Activity log not found"));
+
+        Placement placement = log.getIntern().getPlacement();
+
+        if (placement == null || placement.getMentor() == null) {
+            throw new IllegalStateException("No mentor assigned to this intern");
+        }
+
+        if (!placement.getMentor().getId().equals(mentorId)) {
+            throw new IllegalStateException("You are not allowed to review this log");
+        }
+
+        if (log.getStatus() != ActivityLogStatus.SUBMITTED) {
+            throw new IllegalStateException("Only submitted logs can be reviewed");
+        }
+
+        log.setMentorComment(mentorComment);
+        log.setReviewDate(LocalDate.now());
+
+        // ✅ FIXED FLOW RULE
+        if (status == ActivityLogStatus.NEEDS_REVISION) {
+            log.setStatus(ActivityLogStatus.DRAFT); // BACK TO EDITABLE STATE
+        } else {
+            log.setStatus(status); // APPROVED or REJECTED
+        }
+
+        return mapToDto(internActivityLogRepository.save(log));
+    }
+
+    // DELETE → ONLY DRAFT
     public void deleteActivityLog(Long id) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'deleteActivityLog'");
+
+        InternActivityLog log = internActivityLogRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException("Activity log not found"));
+
+        if (log.getStatus() != ActivityLogStatus.DRAFT) {
+            throw new IllegalStateException("Only draft logs can be deleted");
+        }
+
+        internActivityLogRepository.delete(log);
+    }
+
+    // DTO MAPPING
+    private InternActivityLogDto mapToDto(InternActivityLog log) {
+        InternActivityLogDto dto = modelMapper.map(log, InternActivityLogDto.class);
+
+        if (log.getIntern() != null) {
+
+            dto.setInternId(log.getIntern().getId());
+
+            if (log.getIntern().getApplication() != null) {
+                dto.setInternName(
+                        log.getIntern().getApplication().getFirstName() + " " +
+                                log.getIntern().getApplication().getLastName());
+            }
+
+            if (log.getIntern().getPlacement() != null) {
+
+                if (log.getIntern().getPlacement().getMentor() != null) {
+                    dto.setMentorId(log.getIntern().getPlacement().getMentor().getId());
+                    dto.setMentorName(log.getIntern().getPlacement().getMentor().getName());
+                }
+
+                if (log.getIntern().getPlacement().getSchool() != null) {
+                    dto.setSchoolId(log.getIntern().getPlacement().getSchool().getId());
+                    dto.setSchoolName(log.getIntern().getPlacement().getSchool().getName());
+                }
+            }
+        }
+        return dto;
     }
 }
+// Intern assigned to Placement
+// ↓
+// Placement contains Mentor + School
+// ↓
+// Intern submits daily activity log
+// ↓
+// System attaches log to Intern ONLY
+// ↓
+// Mentor reviews log via Placement
+// ↓
+// Mentor adds comment (optional via service layer)

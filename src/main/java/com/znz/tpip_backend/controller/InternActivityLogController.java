@@ -7,7 +7,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.znz.tpip_backend.dto.ActivityLogReviewDto;
 import com.znz.tpip_backend.dto.InternActivityLogDto;
+import com.znz.tpip_backend.enums.ActivityLogStatus;
 import com.znz.tpip_backend.service.InternActivityLogService;
 
 @RestController
@@ -33,6 +35,12 @@ public class InternActivityLogController {
     public ResponseEntity<InternActivityLogDto> addActivityLog(@RequestBody InternActivityLogDto internActivityLogDto) {
         InternActivityLogDto activityLog = internActivityLogService.addActivityLog(internActivityLogDto);
         return new ResponseEntity<>(activityLog, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/{id}/review") // meaning: “Go to a specific activity log by its ID, then perform a review action on it.”
+    public ResponseEntity<InternActivityLogDto> reviewActivityLog(@PathVariable Long id, @RequestBody ActivityLogReviewDto request) {
+        InternActivityLogDto activityLog = internActivityLogService.reviewActivityLog(id, request.getMentorComment(), request.getStatus());
+        return new ResponseEntity<>(activityLog, HttpStatus.OK);
     }
 
     @PutMapping("/{id}")

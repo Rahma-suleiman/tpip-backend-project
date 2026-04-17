@@ -36,7 +36,7 @@ public class InternActivityLog extends AuditModel<String>{
     @Column(length = 1000)
     private String challenges;
 
-    private double hoursSpent;
+    private Double hoursSpent;
 
     @Column(length = 1000)
     private String mentorComment;
@@ -48,7 +48,8 @@ public class InternActivityLog extends AuditModel<String>{
     @JoinColumn(name = "intern_id", nullable = false)
     private Intern intern;    
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "mentor_id", nullable = false)
-    private Mentor mentor;
+    // get mentor like this: intern.getPlacement().getMentor()
+    // @ManyToOne(fetch = FetchType.LAZY)
+    // @JoinColumn(name = "mentor_id", nullable = false)
+    // private Mentor mentor;           
 }
