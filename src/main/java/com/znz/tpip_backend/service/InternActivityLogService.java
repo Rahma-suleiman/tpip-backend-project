@@ -346,7 +346,7 @@ public class InternActivityLogService {
     }
 
     // MENTOR REVIEW
-    public InternActivityLogDto reviewActivityLog(Long id, Long mentorId,
+    public InternActivityLogDto reviewActivityLog(Long id,
             String mentorComment, ActivityLogStatus status) {
 
         if (status != ActivityLogStatus.APPROVED &&
@@ -360,18 +360,15 @@ public class InternActivityLogService {
 
         Placement placement = log.getIntern().getPlacement();
 
-        if (placement == null || placement.getMentor() == null) {
-            throw new IllegalStateException("No mentor assigned to this intern");
-        }
+         // BASIC SAFETY (optional but good)
+    if (placement == null || placement.getMentor() == null) {
+        throw new IllegalStateException("No mentor assigned to this intern");
+    }
 
-        if (!placement.getMentor().getId().equals(mentorId)) {
-            throw new IllegalStateException("You are not allowed to review this log");
-        }
-
-        if (log.getStatus() != ActivityLogStatus.SUBMITTED) {
-            throw new IllegalStateException("Only submitted logs can be reviewed");
-        }
-
+    // ONLY SUBMITTED CAN BE REVIEWED
+    if (log.getStatus() != ActivityLogStatus.SUBMITTED) {
+        throw new IllegalStateException("Only submitted logs can be reviewed");
+    }
         log.setMentorComment(mentorComment);
         log.setReviewDate(LocalDate.now());
 
@@ -439,3 +436,25 @@ public class InternActivityLogService {
 // Mentor reviews log via Placement
 // ↓
 // Mentor adds comment (optional via service layer)
+
+
+// {
+//   "date": "2026-04-18",
+//   "subject": "Mathematics",
+//   "topicTaught": "Fractions and Decimals",
+//   "classLevel": "Grade 5",
+//   "activitiesDone": "Introduced fractions using visual aids, group exercises, and board demonstrations.",
+//   "challenges": "Some students had difficulty understanding decimal conversion.",
+//   "hoursSpent": 3.5,
+//   "internId": 1
+// }
+// {
+//   "date": "2026-04-18",
+//   "subject": "English",
+//   "topicTaught": "Parts of Speech - Nouns and Verbs",
+//   "classLevel": "Grade 4",
+//   "activitiesDone": "Conducted interactive lesson with examples, class participation, and short exercises.",
+//   "challenges": "Students were shy to participate initially.",
+//   "hoursSpent": 2.5,
+//   "internId": 2
+// }
