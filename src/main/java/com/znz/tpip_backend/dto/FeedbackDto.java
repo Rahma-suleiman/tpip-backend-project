@@ -18,16 +18,22 @@ public class FeedbackDto {
     
     private LocalDate date;
     
+    private String sessionTopic;      
+    private String performanceLevel;  
+    private String recommendations;  
+
     // forward r/ship
     private Long mentorId;
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private String mentorName;
-    
+
     private Long internId; 
     
+    private Long placementId;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String mentorName;
+        
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private String internName;
 
-    private Long placementId;
     
 }

@@ -21,11 +21,16 @@ public class Feedback extends AuditModel<String> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private int rating;
+    private int rating;  // e.g., 1-5
 
     private String comment;
 
     private LocalDate date;
+
+    // 🔥 NEW FIELDS (VERY IMPORTANT)
+    private String sessionTopic;     // e.g. "Teaching practice"
+    private String performanceLevel; // GOOD / AVERAGE / POOR
+    private String recommendations;  // what to improve
 
     // fk
     @ManyToOne(fetch = FetchType.LAZY)

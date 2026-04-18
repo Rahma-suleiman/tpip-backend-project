@@ -30,8 +30,8 @@ public class FeedbackController {
     }
 
     @PostMapping
-    public ResponseEntity<FeedbackDto> addExtension(@RequestBody FeedbackDto feedbackDto) {
-        FeedbackDto feedback = feedbackService.addExtension(feedbackDto);
+    public ResponseEntity<FeedbackDto> addFeedback(@RequestBody FeedbackDto feedbackDto) {
+        FeedbackDto feedback = feedbackService.addFeedback(feedbackDto);
         return new ResponseEntity<>(feedback, HttpStatus.CREATED);
     }
 
