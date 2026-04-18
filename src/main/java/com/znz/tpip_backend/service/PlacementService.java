@@ -373,13 +373,13 @@ public class PlacementService {
 
 // {
 //   "internId": 1,
-//   "schoolId": 2,
-//   "mentorId": 5
+//   "schoolId": 6,
+//   "mentorId": 9
 // }
 // {
 //   "internId": 2,
-//   "schoolId": 1,
-//   "mentorId": 4
+//   "schoolId": 5,
+//   "mentorId": 8
 // }
 // PROJECT FLOW
 // Application Approved

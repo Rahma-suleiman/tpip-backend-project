@@ -458,3 +458,14 @@ public class InternActivityLogService {
 //   "hoursSpent": 2.5,
 //   "internId": 2
 // }
+// REVIEW PAYLOAD
+// id = 1
+// {
+//   "mentorComment": "Good lesson structure and clear explanation of fractions. Students showed good understanding.",
+//   "status": "APPROVED"
+// }
+// id = 2
+// {
+//   "mentorComment": "Lesson was good, but encourage more student participation and engagement from the beginning.",
+//   "status": "NEEDS_REVISION"
+// }

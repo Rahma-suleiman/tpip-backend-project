@@ -395,12 +395,3 @@ public class MentorService {
 //     "status": "ACTIVE",
 //     "schoolId": 6
 //   }
-// {
-//     "name": "Khalid Said",
-//     "email": "khalid.said@gmail.com",
-//     "qualificationLevel": "DIPLOMA",
-//     "yearsOfExperience": 2,
-//     "specialization": "History",
-//     "status": "ACTIVE",
-//     "schoolId": 1
-//   }

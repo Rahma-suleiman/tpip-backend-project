@@ -322,6 +322,10 @@ public class ApplicationService {
 //     "reviewerName":"Admin John"
 // }
 // {
+//     "status":"REJECTED",
+//     "reviewerName":"Admin John"
+// }
+// {
 //     "status":"APPROVED",
 //     "reviewerName":"Admin Junaid"
 // }

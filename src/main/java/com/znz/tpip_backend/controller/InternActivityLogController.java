@@ -15,7 +15,7 @@ import com.znz.tpip_backend.service.InternActivityLogService;
 @RestController
 @RequestMapping("/api/v1/tpip/internActivityLog")
 public class InternActivityLogController {
-    
+
     @Autowired
     private InternActivityLogService internActivityLogService;
 
@@ -37,14 +37,24 @@ public class InternActivityLogController {
         return new ResponseEntity<>(activityLog, HttpStatus.CREATED);
     }
 
-    @PostMapping("/{id}/review") // meaning: “Go to a specific activity log by its ID, then perform a review action on it.”
-    public ResponseEntity<InternActivityLogDto> reviewActivityLog(@PathVariable Long id, @RequestBody ActivityLogReviewDto request) {
-        InternActivityLogDto activityLog = internActivityLogService.reviewActivityLog(id, request.getMentorComment(), request.getStatus());
+    @PutMapping("/{id}/submit")
+    public ResponseEntity<InternActivityLogDto> submitLog( @PathVariable Long id, @RequestParam Long internId) {
+        InternActivityLogDto activityLog = internActivityLogService.submitLog(id, internId);
+        return ResponseEntity.ok(activityLog);
+    }
+
+    @PostMapping("/{id}/review") // meaning: “Go to a specific activity log by its ID, then perform a review
+                                 // action on it.”
+    public ResponseEntity<InternActivityLogDto> reviewActivityLog(@PathVariable Long id,
+            @RequestBody ActivityLogReviewDto request) {
+        InternActivityLogDto activityLog = internActivityLogService.reviewActivityLog(id, request.getMentorComment(),
+                request.getStatus());
         return new ResponseEntity<>(activityLog, HttpStatus.OK);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<InternActivityLogDto> editActivityLog(@PathVariable Long id, @RequestBody InternActivityLogDto internActivityLogDto) {
+    public ResponseEntity<InternActivityLogDto> editActivityLog(@PathVariable Long id,
+            @RequestBody InternActivityLogDto internActivityLogDto) {
         InternActivityLogDto activityLog = internActivityLogService.editActivityLog(id, internActivityLogDto);
         return new ResponseEntity<>(activityLog, HttpStatus.OK);
     }

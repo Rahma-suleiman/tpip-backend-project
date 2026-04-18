@@ -2,9 +2,7 @@ package com.znz.tpip_backend.service;
 
 import java.util.List;
 
-import org.jspecify.annotations.Nullable;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.znz.tpip_backend.dto.UserDto;
@@ -70,6 +68,7 @@ public class UserService {
 
 
 }
+
 // REGISTER
 // {
 //   "name": "Rahma",
