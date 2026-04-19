@@ -29,16 +29,28 @@ public class FeedbackController {
         return ResponseEntity.ok(feedback);
     }
 
-    @PostMapping
-    public ResponseEntity<FeedbackDto> addFeedback(@RequestBody FeedbackDto feedbackDto) {
-        FeedbackDto feedback = feedbackService.addFeedback(feedbackDto);
-        return new ResponseEntity<>(feedback, HttpStatus.CREATED);
+    // For now ABT EDIT AND ADD, we simulate loggedInMentorId using header (later JWT will replace it):
+      @PostMapping
+    public ResponseEntity<FeedbackDto> addFeedback(
+            @RequestBody FeedbackDto feedbackDto,
+            @RequestHeader("mentorId") Long mentorId // simulate JWT
+    ) {
+        return new ResponseEntity<>(
+                feedbackService.addFeedback(feedbackDto, mentorId),
+                HttpStatus.CREATED
+        );
     }
 
+    // ✅ FIXED
     @PutMapping("/{id}")
-    public ResponseEntity<FeedbackDto> editFeedback(@PathVariable Long id, @RequestBody FeedbackDto feedbackDto) {
-        FeedbackDto feedback = feedbackService.editFeedback(id, feedbackDto);
-        return new ResponseEntity<>(feedback, HttpStatus.OK);
+    public ResponseEntity<FeedbackDto> editFeedback(
+            @PathVariable Long id,
+            @RequestBody FeedbackDto feedbackDto,
+            @RequestHeader("mentorId") Long mentorId
+    ) {
+        return ResponseEntity.ok(
+                feedbackService.editFeedback(id, feedbackDto, mentorId)
+        );
     }
 
     @DeleteMapping("/{id}")

@@ -22,7 +22,7 @@ public class FeedbackDto {
     private String performanceLevel;  
     private String recommendations;  
 
-    // forward r/ship
+    // forward r/ship(inputs)
     private Long mentorId;
 
     private Long internId; 

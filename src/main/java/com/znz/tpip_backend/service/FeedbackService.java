@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.znz.tpip_backend.dto.FeedbackDto;
@@ -44,21 +43,21 @@ public class FeedbackService {
     }
 
     public List<FeedbackDto> getLogsByIntern(Long internId) {
-        return feedbackRepository.findByInternId(internId)
+        return feedbackRepository.findByInternIdOrderByDateDesc(internId)
                 .stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
     }
 
     public List<FeedbackDto> getLogsByMentor(Long mentorId) {
-        return feedbackRepository.findByMentorId(mentorId)
+        return feedbackRepository.findByMentorIdOrderByDateDesc(mentorId)
                 .stream()
                 .map(feedback -> this.mapToDto(feedback))
                 .collect(Collectors.toList());
     }
 
     public List<FeedbackDto> getLogsByPlacement(Long placementId) {
-        return feedbackRepository.findByPlacementId(placementId)
+        return feedbackRepository.findByPlacementIdOrderByDateDesc(placementId)
                 .stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
@@ -66,13 +65,14 @@ public class FeedbackService {
 
     // Mentor only can add feedback for intern, so we need to check if the mentor
     // and intern exist
-    public FeedbackDto addFeedback(FeedbackDto feedbackDto) {
+    public FeedbackDto addFeedback(FeedbackDto feedbackDto, long loggedInMentorId) {
 
         // Validate input
         if (feedbackDto.getMentorId() == null || feedbackDto.getInternId() == null
                 || feedbackDto.getPlacementId() == null) {
             throw new IllegalArgumentException("Mentor ID, Intern ID, and Placement ID must be provided");
         }
+
         // Check if mentor exists
         Mentor mentor = mentorRepository.findById(feedbackDto.getMentorId())
                 .orElseThrow(() -> new IllegalStateException("Mentor not found with id: " + feedbackDto.getMentorId()));
@@ -92,6 +92,10 @@ public class FeedbackService {
             throw new IllegalStateException("Invalid placement relationship");
         }
 
+        // RULE 2: Only owner mentor can add (WILL B HANDLED B JWT)
+        if (!mentor.getId().equals(loggedInMentorId)) {
+            throw new IllegalStateException("You can only add feedback as the assigned mentor");
+        }
         // RULE 2: Only ACTIVE
         if (placement.getStatus() != PlacementStatus.ACTIVE) {
             throw new IllegalStateException("Only ACTIVE internships can receive feedback");
@@ -113,6 +117,9 @@ public class FeedbackService {
         feedback.setIntern(intern);
         feedback.setPlacement(placement);
 
+        if (feedbackDto.getRating() < 1 || feedbackDto.getRating() > 5) {
+            throw new IllegalArgumentException("Rating must be between 1 and 5");
+        }
         feedback.setRating(feedbackDto.getRating());
         feedback.setComment(feedbackDto.getComment());
 
@@ -129,17 +136,17 @@ public class FeedbackService {
 
     // mentor only
     // 4. UPDATE (MENTOR ONLY)
-    public FeedbackDto editFeedback(Long id, FeedbackDto dto) {
+    public FeedbackDto editFeedback(Long id, FeedbackDto dto, long loggedInMentorId) {
 
         Feedback feedback = feedbackRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException("Feedback not found"));
 
-        // 🔒 RULE 1: Only owner mentor can edit
+        // // RULE 1: Only owner mentor can edit (WILL B HANDLED B JWT)
         if (!feedback.getMentor().getId().equals(loggedInMentorId)) {
-            throw new IllegalStateException("You are not allowed to edit this feedback");
+        throw new IllegalStateException("You are not allowed to edit this feedback");
         }
 
-        // 🔒 RULE 2: Only while internship is ACTIVE
+        // RULE 2: Only while internship is ACTIVE
         Placement placement = feedback.getPlacement();
         if (placement.getStatus() != PlacementStatus.ACTIVE) {
             throw new IllegalStateException("Cannot edit feedback after internship ends");
@@ -157,19 +164,33 @@ public class FeedbackService {
         if (dto.getComment() != null) {
             feedback.setComment(dto.getComment().trim());
         }
+        if (dto.getSessionTopic() != null) {
+            feedback.setSessionTopic(dto.getSessionTopic().trim());
+        }
 
-        return mapToDto(feedbackRepository.save(feedback));
+        if (dto.getPerformanceLevel() != null) {
+            feedback.setPerformanceLevel(dto.getPerformanceLevel());
+        }
+
+        if (dto.getRecommendations() != null) {
+            feedback.setRecommendations(dto.getRecommendations().trim());
+        }
+        Feedback updated = feedbackRepository.save(feedback);
+
+        return mapToDto(updated);
     }
 
-    public void deleteFeedback(Long id, Long loggedInMentorId) {
+    // public void deleteFeedback(Long id, Long loggedInMentorId) {
+    public void deleteFeedback(Long id) {
 
         Feedback feedback = feedbackRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException("Feedback not found"));
 
-        // 🔒 RULE 1: Only owner can delete
-        if (!feedback.getMentor().getId().equals(loggedInMentorId)) {
-            throw new IllegalStateException("You are not allowed to delete this feedback");
-        }
+        // 🔒 RULE 1: Only owner can delete(APPLIED IN JWT)
+        // if (!feedback.getMentor().getId().equals(loggedInMentorId)) {
+        // throw new IllegalStateException("You are not allowed to delete this
+        // feedback");
+        // }
 
         // 🔒 RULE 2: Only before internship starts
         if (feedback.getPlacement().getStatus() == PlacementStatus.ACTIVE) {
@@ -178,7 +199,8 @@ public class FeedbackService {
 
         feedbackRepository.delete(feedback);
     }
-    // recommended
+    // RECOMMENDED Reason: Feedback = official record ,Used for evaluation,Must not
+    // be removed
     // public void deleteFeedback(Long id) {
     // throw new IllegalStateException("Deleting feedback is not allowed");
     // }
@@ -192,9 +214,14 @@ public class FeedbackService {
         }
         if (feedback.getIntern() != null) {
             dto.setInternId(feedback.getIntern().getId());
-            dto.setInternName(feedback.getIntern().getApplication().getFirstName() + " "
-                    + feedback.getIntern().getApplication().getLastName());
+
+            if (feedback.getIntern().getApplication() != null) {
+                dto.setInternName(
+                        feedback.getIntern().getApplication().getFirstName() + " " +
+                                feedback.getIntern().getApplication().getLastName());
+            }
         }
+
         if (feedback.getPlacement() != null) {
             dto.setPlacementId(feedback.getPlacement().getId());
         }
@@ -207,10 +234,10 @@ public class FeedbackService {
 // ↓
 // Mentor conducts session
 // ↓
-// Mentor records mentoring log
+// Mentor records mentoring log/Create feedback log (multiple allowed)
 // ↓
 // System stores multiple logs over time
 // ↓
-// Admin reviews progress
+// Admin reviews progress/logs
 // ↓
-// Final evaluation based on logs
+// Final evaluation decision based on logs

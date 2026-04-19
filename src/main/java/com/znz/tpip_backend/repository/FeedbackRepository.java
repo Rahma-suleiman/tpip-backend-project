@@ -1,7 +1,7 @@
 package com.znz.tpip_backend.repository;
 
 import java.time.LocalDate;
-import java.util.Collection;
+import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -12,15 +12,19 @@ import com.znz.tpip_backend.model.Feedback;
 @Repository
 public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
 
-    boolean existsByMentorIdAndInternIdAndDate(Long id, Long id2, LocalDate now);
+    boolean existsByMentorIdAndInternIdAndDate(Long mentorId, Long internId, LocalDate date);
 
-    Collection<FeedbackDto> findByInternId(Long internId);
+    // Order is random ❌ - we want newest first
+    // List<Feedback> findByInternId(Long internId);
 
-    Collection<FeedbackDto> findByMentorId(Long mentorId);
+    // List<Feedback> findByMentorId(Long mentorId);
 
-    Collection<FeedbackDto> findByPlacementId(Long placementId);
+    // List<Feedback> findByPlacementId(Long placementId);
 
-    
-} 
+    // This gives: newest logs first (real-world expectation)
+    List<Feedback> findByInternIdOrderByDateDesc(Long internId);
 
+    List<Feedback> findByMentorIdOrderByDateDesc(Long mentorId);
 
+    List<Feedback> findByPlacementIdOrderByDateDesc(Long placementId);
+}

@@ -15,15 +15,22 @@ import com.znz.tpip_backend.model.Placement;
 import com.znz.tpip_backend.repository.InternActivityLogRepository;
 import com.znz.tpip_backend.repository.InternRepository;
 
-import lombok.RequiredArgsConstructor;
+// import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
+// @RequiredArgsConstructor 
 public class InternActivityLogService {
 
     private final InternActivityLogRepository internActivityLogRepository;
     private final ModelMapper modelMapper;
     private final InternRepository internRepository;
+    
+    public InternActivityLogService(InternActivityLogRepository internActivityLogRepository, ModelMapper modelMapper,
+            InternRepository internRepository) {
+        this.internActivityLogRepository = internActivityLogRepository;
+        this.modelMapper = modelMapper;
+        this.internRepository = internRepository;
+    }
 
     // GET ALL LOGS
     public List<InternActivityLogDto> getAllActivityLogs() {
