@@ -101,16 +101,19 @@ public class FeedbackService {
             throw new IllegalStateException("Only ACTIVE internships can receive feedback");
         }
         // OPTIONAL RULE: one log per day
+        LocalDate feedbackDate = feedbackDto.getDate() != null
+        ? feedbackDto.getDate()
+        : LocalDate.now();
+
         boolean exists = feedbackRepository
-                .existsByMentorIdAndInternIdAndDate(
-                        mentor.getId(),
-                        intern.getId(),
-                        LocalDate.now());
+        .existsByMentorIdAndInternIdAndDate(
+                mentor.getId(),
+                intern.getId(),
+                feedbackDate);
 
-        if (exists) {
-            throw new IllegalStateException("You already submitted today's log");
-        }
-
+if (exists) {
+    throw new IllegalStateException("You already submitted log for this date");
+}
         // 2. CREATE LOG
         Feedback feedback = new Feedback();
         feedback.setMentor(mentor);
@@ -127,7 +130,7 @@ public class FeedbackService {
         feedback.setPerformanceLevel(feedbackDto.getPerformanceLevel());
         feedback.setRecommendations(feedbackDto.getRecommendations());
 
-        feedback.setDate(LocalDate.now());
+        feedback.setDate(feedbackDate);
 
         Feedback saved = feedbackRepository.save(feedback);
 
@@ -241,3 +244,26 @@ public class FeedbackService {
 // Admin reviews progress/logs
 // ↓
 // Final evaluation decision based on logs
+
+// {
+//   "rating": 4,
+//   "comment": "Good lesson delivery with clear explanation of fractions. Students were engaged during group activities.",
+//   "date": "2026-04-18",
+//   "sessionTopic": "Teaching Fractions using Visual Aids",
+//   "performanceLevel": "GOOD",
+//   "recommendations": "Work more on explaining decimal conversions using simpler examples.",
+//   "mentorId": 9,
+//   "internId": 1,
+//   "placementId": 1
+// }
+// {
+//   "rating": 3,
+//   "comment": "The lesson was well structured, but some students struggled with understanding decimals.",
+//   "date": "2026-04-20",
+//   "sessionTopic": "Fractions and Decimal Conversion Practice",
+//   "performanceLevel": "AVERAGE",
+//   "recommendations": "Use more step-by-step demonstrations and real-life examples for decimals.",
+//   "mentorId": 9,
+//   "internId": 1,
+//   "placementId": 1
+// }
