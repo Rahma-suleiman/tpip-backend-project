@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import com.znz.tpip_backend.dto.AssignRequestDto;
 import com.znz.tpip_backend.dto.PlacementDto;
 import com.znz.tpip_backend.enums.PlacementStatus;
+import com.znz.tpip_backend.model.Extension;
 import com.znz.tpip_backend.model.Intern;
 import com.znz.tpip_backend.model.Mentor;
 import com.znz.tpip_backend.model.Placement;
@@ -158,8 +159,7 @@ public class PlacementService {
 
         // 2. 🔥 VALIDATION RULES (VERY IMPORTANT)
 
-        // RULE 1: Mentor must belong to same school
-
+        // RULE 1: Mentor must belong to same/selected school
         if (mentor.getSchool() == null ||
                 !mentor.getSchool().getId().equals(school.getId())) {
             throw new IllegalStateException("Mentor does not belong to selected school");
@@ -179,19 +179,13 @@ public class PlacementService {
         if (current >= capacity) {
             throw new IllegalStateException("School has reached maximum intern capacity");
         }
-        // RULE 3: Mentor should not be overloaded (example limit: 5 interns)
-        // long activeInterns = (mentor.getPlacements() != null)
-        // ? mentor.getPlacements()
-        // .stream()
-        // .filter(p -> p.getStatus() == PlacementStatus.ACTIVE)
-        // .count()
-        // : 0;
+        // RULE 3: Mentor workload limit (max 5 ACTIVE interns)
         long activeInterns = mentor.getPlacements() == null
                 ? 0
                 : mentor.getPlacements().stream()
                         .filter(p -> p.getStatus() == PlacementStatus.ACTIVE)
                         .count();
-                        
+
         if (activeInterns >= 5) {
             throw new IllegalStateException("Mentor already has maximum interns");
         }
@@ -224,8 +218,10 @@ public class PlacementService {
             placement.setStatus(PlacementStatus.ASSIGNED);
 
             // increase school count ONLY when new placement
+            school.setCurrentInternCount(current + 1);
 
-            school.setCurrentInternCount(school.getCurrentInternCount() + 1);
+            schoolRepository.save(school);
+
         }
 
         Placement saved = placementRepository.save(placement);
@@ -252,23 +248,31 @@ public class PlacementService {
                 .orElseThrow(() -> new IllegalStateException("Mentor not found"));
 
         // 4. RULE: Mentor must belong to School
-        if (!newMentor.getSchool().getId().equals(newSchool.getId())) {
+        // if (!newMentor.getSchool().getId().equals(newSchool.getId())) {
+        // throw new IllegalStateException("Mentor does not belong to selected school");
+        // }
+        if (newMentor.getSchool() == null ||
+                !newMentor.getSchool().getId().equals(newSchool.getId())) {
             throw new IllegalStateException("Mentor does not belong to selected school");
         }
 
-        // 5. HANDLE SCHOOL COUNT CHANGE (VERY IMPORTANT)
-
+        // 5. HANDLE SCHOOL COUNT CHANGE
         School oldSchool = placement.getSchool();
 
-        if (!oldSchool.getId().equals(newSchool.getId())) {
+        if (oldSchool != null && !oldSchool.getId().equals(newSchool.getId())) {
+
+            int oldCount = oldSchool.getCurrentInternCount();
+            int newCount = newSchool.getCurrentInternCount();
 
             // decrease old school count
-            oldSchool.setCurrentInternCount(
-                    oldSchool.getCurrentInternCount() - 1);
+            oldSchool.setCurrentInternCount(Math.max(0, oldCount - 1));
 
             // increase new school count
-            newSchool.setCurrentInternCount(
-                    newSchool.getCurrentInternCount() + 1);
+            newSchool.setCurrentInternCount(newCount + 1);
+
+            // SAVE BOTH SCHOOLS ✔ IMPORTANT FIX
+            schoolRepository.save(oldSchool);
+            schoolRepository.save(newSchool);
         }
 
         // 6. UPDATE DATA
@@ -326,6 +330,7 @@ public class PlacementService {
         // decrease count
         School school = placement.getSchool();
         school.setCurrentInternCount(school.getCurrentInternCount() - 1);
+        schoolRepository.save(school);
 
         placementRepository.delete(placement);
     }
@@ -366,20 +371,29 @@ public class PlacementService {
         // "mentorId": 3,
         // "mentorName": "Mr. Ali"
         // }
+
+        // 3. manually map reverse r/ship ids only (example: extensionIds)
+        dto.setExtensionIds(
+                placement.getExtensions() != null
+                        ? placement.getExtensions()
+                                .stream()
+                                .map(Extension::getId)
+                                .toList()
+                        : List.of());
         return dto;
     }
 
 }
 
 // {
-//   "internId": 1,
-//   "schoolId": 6,
-//   "mentorId": 9
+// "internId": 1,
+// "schoolId": 6,
+// "mentorId": 9
 // }
 // {
-//   "internId": 2,
-//   "schoolId": 5,
-//   "mentorId": 8
+// "internId": 2,
+// "schoolId": 5,
+// "mentorId": 8
 // }
 // PROJECT FLOW
 // Application Approved

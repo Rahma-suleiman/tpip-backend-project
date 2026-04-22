@@ -46,9 +46,6 @@ public class Intern extends AuditModel<String> {
     @OneToMany(mappedBy = "intern", cascade = CascadeType.ALL)
     private List<Evaluation> evaluations;
 
-    @OneToMany(mappedBy = "intern", cascade = CascadeType.ALL)
-    private List<Extension> extensions;
-
     @OneToOne(mappedBy = "intern", cascade = CascadeType.ALL)
     private Certificate certificate;
 

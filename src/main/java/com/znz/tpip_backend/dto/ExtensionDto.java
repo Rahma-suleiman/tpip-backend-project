@@ -13,14 +13,16 @@ public class ExtensionDto {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long id;
 
+    private int extraDays;
+    private String reason;
+
     private LocalDate startDate;
     private LocalDate endDate;
-    private String reason;
 
     private ExtensionStatus status;
 
     // forward r/ship
-    private Long intern;
+    private Long placementId;
 
-    private Long evaluation;
+    private Long evaluationId;
 }

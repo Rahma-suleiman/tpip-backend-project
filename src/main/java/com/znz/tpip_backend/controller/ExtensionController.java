@@ -28,22 +28,27 @@ public class ExtensionController {
         ExtensionDto ext = extensionService.getExtensionById(id);
         return ResponseEntity.ok(ext);
     }
+    @GetMapping("/placement/{placementId}")
+    public ResponseEntity<List<ExtensionDto>> getExtensionByPlacementId(@PathVariable Long placementId) {
+        List<ExtensionDto> ext = extensionService.getExtensionByPlacementId(placementId);
+        return ResponseEntity.ok(ext);
+    }
 
-    @PostMapping
-    public ResponseEntity<ExtensionDto> addExtension(@RequestBody ExtensionDto extensionDto) {
-        ExtensionDto extension = extensionService.addExtension(extensionDto);
+    // AUTO CREATE FROM EVALUATION
+    @PostMapping("/from-evaluation/{evaluationId}")
+    public ResponseEntity<ExtensionDto> createExtensionFromEvaluation(@PathVariable Long evaluationId) {
+        ExtensionDto extension = extensionService.createExtensionFromEvaluation(evaluationId);
         return new ResponseEntity<>(extension, HttpStatus.CREATED);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ExtensionDto> editExtension(@PathVariable Long id, @RequestBody ExtensionDto extensionDto) {
-        ExtensionDto extension = extensionService.editExtension(id, extensionDto);
-        return new ResponseEntity<>(extension, HttpStatus.OK);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteExtension(@PathVariable Long id) {
-        extensionService.deleteExtension(id);
+    @PutMapping("/{id}/complete")
+    public ResponseEntity<Void> completeExtension(@PathVariable Long id) {
+        extensionService.completeExtension(id);
         return ResponseEntity.noContent().build();
     }
+    @PutMapping("/{id}/cancel")
+    public void cancel(@PathVariable Long id) {
+        extensionService.cancelExtension(id);
+    }
+
 }

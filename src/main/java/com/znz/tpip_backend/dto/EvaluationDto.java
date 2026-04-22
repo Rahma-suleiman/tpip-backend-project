@@ -15,7 +15,8 @@ public class EvaluationDto {
     private Long id;
 
     private double score;
-
+    
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private EvaluationStatus status;
 
     private LocalDate evaluationDate;
@@ -24,10 +25,16 @@ public class EvaluationDto {
 
     private String remarks;
 
-    // Forward r/ship
-    private Long internId;
+    //  SUMMARY DATA
+    private Double averageRating;
+    private Integer totalSessions;
+    private Integer totalHours;
 
+    // fk
+    private Long internId;
     private Long mentorId;
+    private Long placementId;
+
 
     // Reverse
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)

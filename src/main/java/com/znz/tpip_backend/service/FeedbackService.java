@@ -267,3 +267,25 @@ if (exists) {
 //   "internId": 1,
 //   "placementId": 1
 // }
+// {
+//   "rating": 4,
+//   "comment": "Interactive teaching style and good use of examples. Students gradually became engaged.",
+//   "date": "2026-04-19",
+//   "sessionTopic": "Introduction to Nouns and Verbs",
+//   "performanceLevel": "GOOD",
+//   "recommendations": "Start lessons with icebreakers to boost early participation.",
+//   "mentorId": 8,
+//   "internId": 2,
+//   "placementId": 2
+// }
+// {
+//   "rating": 3,
+//   "comment": "Lesson content was correct, but initial student engagement was low.",
+//   "date": "2026-04-19",
+//   "sessionTopic": "Practice Exercises on Parts of Speech",
+//   "performanceLevel": "AVERAGE",
+//   "recommendations": "Encourage participation earlier using questions or short activities.",
+//   "mentorId": 8,
+//   "internId": 2,
+//   "placementId": 2
+// }

@@ -1,6 +1,8 @@
 package com.znz.tpip_backend.model;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.znz.tpip_backend.enums.PlacementStatus;
 
@@ -19,7 +21,7 @@ public class Placement extends AuditModel<String> {
 
     // Internship duration
     private LocalDate startDate;
-    
+
     private LocalDate endDate;
 
     private LocalDate assignedDate;
@@ -29,7 +31,7 @@ public class Placement extends AuditModel<String> {
 
     private String remarks;
 
-    //fk
+    // fk
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "school_id", nullable = false)
     private School school;
@@ -41,5 +43,9 @@ public class Placement extends AuditModel<String> {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "intern_id", nullable = false, unique = true)
     private Intern intern;
+
+    // reverse
+    @OneToMany(mappedBy = "placement", cascade = CascadeType.ALL)
+    private List<Extension> extensions = new ArrayList<>();
 
 }

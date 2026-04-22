@@ -10,24 +10,25 @@ import lombok.Data;
 @Entity
 @Data
 @Table(name = "extension")
-public class Extension extends AuditModel<String>{
+public class Extension extends AuditModel<String> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private int extraDays;
+    private String reason;
+
     private LocalDate startDate;
     private LocalDate endDate;
-    private String reason;
 
     @Enumerated(EnumType.STRING)
     private ExtensionStatus status;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "intern_id",nullable = false)
-    private Intern intern;
+    @JoinColumn(name = "placement_id", nullable = false)
+    private Placement placement;
 
-    // ✔ OPTIONAL LINK (TRACEABILITY ONLY)
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "evaluation_id", nullable = false)
     private Evaluation evaluation;

@@ -17,7 +17,7 @@ public class Evaluation extends AuditModel<String> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private double score;
+    private double score; // final score (0-100)
 
     @Enumerated(EnumType.STRING)
     private EvaluationStatus status;
@@ -29,6 +29,11 @@ public class Evaluation extends AuditModel<String> {
     @Enumerated(EnumType.STRING)
     private EvaluationType evaluationType;
 
+        // ✅ SUMMARY DATA (derived from logs)
+    private Double averageRating;     // from feedbacks
+    private Integer totalSessions;    // number of logs
+    private Integer totalHours;       // optional (from activity logs)
+
  
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "intern_id", nullable = false)
@@ -37,7 +42,26 @@ public class Evaluation extends AuditModel<String> {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mentor_id", nullable = false)
     private Mentor mentor;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "placement_id", nullable = false)
+    private Placement placement;
     
     @OneToOne(mappedBy = "evaluation", fetch = FetchType.LAZY)
     private Extension extension;
 }
+// evaluation should be based on a combination of:
+
+// Intern Activity Logs → what the intern actually did
+// Mentor Feedback Logs → how well the intern performed
+// DO NOT directly link Evaluation → ActivityLog or Feedback
+
+// That would:
+
+// Make DB messy ❌
+// Cause duplication ❌
+// Break scalability ❌
+
+// ✔ Instead:
+
+// Evaluation is linked to Placement, and through placement you can access BOTH logs

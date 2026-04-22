@@ -1,41 +1,228 @@
 package com.znz.tpip_backend.service;
 
+import java.time.LocalDate;
 import java.util.List;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.znz.tpip_backend.dto.EvaluationDto;
+import com.znz.tpip_backend.enums.EvaluationStatus;
+import com.znz.tpip_backend.enums.EvaluationType;
+import com.znz.tpip_backend.enums.PlacementStatus;
+import com.znz.tpip_backend.model.Evaluation;
+import com.znz.tpip_backend.model.Feedback;
+import com.znz.tpip_backend.model.Intern;
+import com.znz.tpip_backend.model.Mentor;
+import com.znz.tpip_backend.model.Placement;
 import com.znz.tpip_backend.repository.EvaluationRepository;
+import com.znz.tpip_backend.repository.FeedbackRepository;
+import com.znz.tpip_backend.repository.InternRepository;
+import com.znz.tpip_backend.repository.MentorRepository;
+import com.znz.tpip_backend.repository.PlacementRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class EvaluationService {
 
-    @Autowired
-    private EvaluationRepository evaluationRepository;
+    // @Autowired
+    private final EvaluationRepository evaluationRepository;
+    private final PlacementRepository placementRepository;
+    private final MentorRepository mentorRepository;
+    private final InternRepository internRepository;
+    private final FeedbackRepository feedbackRepository;
+    private final ExtensionService extensionService;
+    private final ModelMapper modelMapper;
 
     public List<EvaluationDto> getAllEvaluations() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getAllEvaluations'");
+        List<Evaluation> evaluations = evaluationRepository.findAll();
+        return evaluations.stream()
+                .map(this::mapToDto)
+                .toList();
     }
 
     public EvaluationDto getEvaluationById(Long id) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getEvaluationById'");
+        Evaluation evaluation = evaluationRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException("Evaluation not found"));
+
+        return mapToDto(evaluation);
     }
 
-    public EvaluationDto addEvaluation(EvaluationDto evaluationDto) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'addEvaluation'");
+    public List<EvaluationDto> getByPlacement(Long placementId) {
+        return evaluationRepository.findByPlacementId(placementId)
+                .stream()
+                // .map(this::mapToDto) OR
+                .map(e -> mapToDto(e))
+                .toList();
     }
 
-    public EvaluationDto editEvaluation(Long id, EvaluationDto evaluationDto) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'editEvaluation'");
+    public EvaluationDto createEvaluation(EvaluationDto dto, Long loggedInMentorId) {
+        // validate ids/inputs
+        Placement placement = placementRepository.findById(dto.getPlacementId())
+                .orElseThrow(() -> new IllegalStateException("Placement not found"));
+        // 2. Get mentor + intern from placement (NOT from DTO lookup)
+        Mentor mentor = placement.getMentor();
+        Intern intern = placement.getIntern();
+
+        // validate r/ships
+        // if (!placement.getMentor().getId().equals(mentor.getId())
+        // || !placement.getIntern().getId().equals(intern.getId())) {
+        // throw new IllegalStateException("Invalid placement relationship");
+        // }
+        // ONLY assigned mentor can evaluate
+        if (!mentor.getId().equals(loggedInMentorId)) {
+            throw new IllegalStateException("You are not allowed to evaluate this intern");
+
+        }
+        // ONLY ACTIVE placement can b evaluated
+        if (placement.getStatus() != PlacementStatus.ACTIVE) {
+            throw new IllegalStateException("Evaluation allowed only during ACTIVE placement");
+
+        }
+        // prevent duplicate evaluation type per placement
+        boolean exists = evaluationRepository.existsByPlacementIdAndEvaluationType(placement.getId(),
+                dto.getEvaluationType());
+
+        if (exists) {
+            throw new IllegalStateException("Evaluation already exists for this type");
+        }
+
+        if (dto.getScore() < 0 || dto.getScore() > 100) {
+            throw new IllegalStateException("Score must be between 0 and 100");
+        }
+
+        // calculate summary BY Fetches ALL feedback records for that placement
+        List<Feedback> feedbacks = feedbackRepository.findByPlacementId(placement.getId());
+
+        double avgRating = feedbacks.stream() // Converts list into a stream (Starts going thro the list 1 by 1, so we
+                                              // can process each feedback 1 by 1)
+                .mapToInt(Feedback::getRating) // Convert each item into an integer (number) -> For each feedback, take
+                                               // its rating) OR Go through each feedback→ take its rating→ turn it into
+                                               // a number/integer list
+                .average() // Calculates average:(4 + 3 + 5) / 3 = 4.0
+                .orElse(0); // Handles case when there are NO feedbacks: Example:[] → no ratings → Then:
+                            // average = 0 (prevents error,keeps system safe)
+        int totalMentoringSessions = feedbacks.size(); // Counts number of feedback entries From:[4, 3, 5]👉
+                                                       // Result:totalSessions = 3;
+
+        // create new evaluation
+        Evaluation evaluation = new Evaluation();
+        evaluation.setMentor(mentor);
+        evaluation.setIntern(intern);
+        evaluation.setPlacement(placement);
+
+        evaluation.setScore(dto.getScore());
+        evaluation.setRemarks(dto.getRemarks());
+        evaluation.setEvaluationType(dto.getEvaluationType());
+        evaluation.setEvaluationDate(LocalDate.now());
+
+        evaluation.setAverageRating(avgRating);
+        evaluation.setTotalSessions(totalMentoringSessions);
+
+        // set status based on FINAL
+        if (dto.getEvaluationType() == EvaluationType.FINAL) {
+            if (dto.getScore() >= 50) {
+                evaluation.setStatus(EvaluationStatus.PASSED);
+            } else {
+                evaluation.setStatus(EvaluationStatus.REQUIRES_EXTENSION);
+
+            }
+        } else {
+            evaluation.setStatus(EvaluationStatus.PENDING);
+
+        }
+        Evaluation savedEvaluation = evaluationRepository.save(evaluation);
+
+        if (savedEvaluation.getExtension() == null &&
+                savedEvaluation.getStatus() == EvaluationStatus.REQUIRES_EXTENSION) {
+
+            extensionService.createExtensionFromEvaluation(savedEvaluation.getId());
+        }
+        return mapToDto(savedEvaluation);
+    }
+
+    public EvaluationDto updateEvaluation(Long id, EvaluationDto dto, Long loggedInMentorId) {
+        Evaluation evaluation = evaluationRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException("Evaluation not found"));
+
+        // ONLY assigned mentor can edit
+        if (!evaluation.getMentor().getId().equals(loggedInMentorId)) {
+            throw new IllegalStateException("You are not allowed to edit this evaluation");
+        }
+        // ONLY PENDING evaluation can be edited
+        if (evaluation.getStatus() != EvaluationStatus.PENDING) {
+            throw new IllegalStateException("Only PENDING evaluation can be edited");
+            // throw new IllegalStateException("Cannot edit finalized evaluation");
+        }
+        // validate score
+        if (dto.getScore() < 0 || dto.getScore() > 100) {
+            throw new IllegalStateException("Score must be between 0 and 100");
+        }
+
+        if (dto.getRemarks() != null) {
+            evaluation.setRemarks(dto.getRemarks());
+        }
+        evaluation.setScore(dto.getScore());
+        Evaluation updatedEvaluation = evaluationRepository.save(evaluation);
+        return mapToDto(updatedEvaluation);
     }
 
     public void deleteEvaluation(Long id) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'deleteEvaluation'");
+
+    }
+
+    private EvaluationDto mapToDto(Evaluation e) {
+
+        EvaluationDto dto = modelMapper.map(e, EvaluationDto.class);
+
+        dto.setInternId(e.getIntern().getId());
+        dto.setMentorId(e.getMentor().getId());
+        dto.setPlacementId(e.getPlacement().getId());
+
+        if (e.getExtension() != null) {
+            dto.setExtensionId(e.getExtension().getId());
+        }
+
+        return dto;
     }
 }
+// ✔ Rules implemented:
+// Mentor must match placement
+// Intern must match placement
+// Only ACTIVE placement can be evaluated
+// Only ONE evaluation per type per placement
+// FINAL determines pass/fail/extension
+// REASSESSMENT only after extension
+// Score must be 0–100
+// Auto-calculate average rating from feedback
+
+// Intern logs activities
+// ↓
+// Mentor reviews → gives feedback
+// ↓
+// System accumulates/collects logs
+// ↓
+// Evaluation created (MIDTERM / FINAL)
+// ↓
+// Evaluation stores:
+// - avg rating
+// - total sessions
+// - remarks
+// - score
+// ↓
+// Final decision (pass / extend)
+// ↓
+// IF score < 50 → REQUIRES_EXTENSION
+// ↓
+// System creates Extension
+// ↓
+// Placement continues (extended period)
+// ↓
+// Intern continues logging
+// ↓
+// Mentor gives feedback
+// ↓
+// REASSESSMENT evaluation

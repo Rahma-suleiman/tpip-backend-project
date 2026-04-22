@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import com.znz.tpip_backend.dto.InternDto;
 import com.znz.tpip_backend.enums.InternStatus;
 import com.znz.tpip_backend.model.Application;
+import com.znz.tpip_backend.model.Evaluation;
 import com.znz.tpip_backend.model.Extension;
 import com.znz.tpip_backend.model.Intern;
 import com.znz.tpip_backend.repository.InternRepository;
@@ -131,27 +132,20 @@ public class InternService {
             dto.setApplicantEmail(intern.getApplication().getEmail());
         }
         // manually map reverse r/ship ids only
-        if (intern.getEvaluations() != null) {
-            dto.setEvaluationIds(
-                    intern.getEvaluations()
-                            .stream()
-                            .map(eva -> eva.getId())
-                            .toList());
-        }
         // using Method Reference
-        dto.setExtensionIds(
-                intern.getExtensions() != null
+        dto.setEvaluationIds(
+                intern.getEvaluations() != null
 
                         // ? → IF condition is true
                         // .stream() → convert list to stream (process one by one)
-                        // .map(...) → transform each Extension to something else
-                        // Extension → class name
+                        // .map(...) → transform each Evaluation to something else
+                        // Evaluation → class name
                         // :: → method reference (call method)
-                        // getId → method to get ID from each Extension
+                        // getId → method to get ID from each Evaluation
                         // .toList() → convert result back to List<Long>
-                        ? intern.getExtensions()
+                        ? intern.getEvaluations()
                                 .stream()
-                                .map(Extension::getId)
+                                .map(Evaluation::getId)
                                 .toList()
 
                         // : → ELSE (if extensions is null)

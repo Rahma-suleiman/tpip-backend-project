@@ -27,4 +27,6 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
     List<Feedback> findByMentorIdOrderByDateDesc(Long mentorId);
 
     List<Feedback> findByPlacementIdOrderByDateDesc(Long placementId);
+
+    List<Feedback> findByPlacementId(Long id);
 }

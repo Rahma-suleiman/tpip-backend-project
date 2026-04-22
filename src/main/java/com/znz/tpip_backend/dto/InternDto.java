@@ -37,9 +37,6 @@ public class InternDto {
     private List<Long> evaluationIds;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private List<Long> extensionIds;
-
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long certificateId;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
