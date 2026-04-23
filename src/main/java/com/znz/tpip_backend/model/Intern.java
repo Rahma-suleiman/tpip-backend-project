@@ -43,9 +43,6 @@ public class Intern extends AuditModel<String> {
     private Application application;
 
     // reverse r/ship
-    @OneToMany(mappedBy = "intern", cascade = CascadeType.ALL)
-    private List<Evaluation> evaluations;
-
     @OneToOne(mappedBy = "intern", cascade = CascadeType.ALL)
     private Certificate certificate;
 
@@ -56,5 +53,5 @@ public class Intern extends AuditModel<String> {
     private List<InternActivityLog> activityLogs;
 
     @OneToMany(mappedBy = "intern", fetch = FetchType.LAZY)
-private List<Feedback> feedbacks = new ArrayList<>();  //Do NOT include feedback in InternDto to hide it in responses. Feedback should be accessed via FeedbackController, not via InternController. This way we can control access to feedback data and ensure that only authorized users (e.g., mentors) can view it.
+    private List<Feedback> feedbacks = new ArrayList<>();  //Do NOT include feedback in InternDto to hide it in responses. Feedback should be accessed via FeedbackController, not via InternController. This way we can control access to feedback data and ensure that only authorized users (e.g., mentors) can view it.
 }

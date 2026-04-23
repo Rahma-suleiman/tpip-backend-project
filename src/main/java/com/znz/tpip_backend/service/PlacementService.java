@@ -373,12 +373,23 @@ public class PlacementService {
         // }
 
         // 3. manually map reverse r/ship ids only (example: extensionIds)
+        // using Method Reference
         dto.setExtensionIds(
                 placement.getExtensions() != null
+
+                        // ? → IF condition is true
+                        // .stream() → convert list to stream (process one by one)
+                        // .map(...) → transform each Extension to something else
+                        // Extension → class name
+                        // :: → method reference (call method)
+                        // getId → method to get ID from each Extension
+                        // .toList() → convert result back to List<Long>
                         ? placement.getExtensions()
                                 .stream()
                                 .map(Extension::getId)
                                 .toList()
+                        // : → ELSE (if extensions is null)
+                        // List.of() → return empty list (safe, no null)
                         : List.of());
         return dto;
     }

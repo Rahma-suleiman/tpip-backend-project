@@ -26,15 +26,28 @@ public class EvaluationDto {
     private String remarks;
 
     //  SUMMARY DATA
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Double averageRating;
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Integer totalSessions;
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Integer totalHours;
 
-    // fk
-    private Long internId;
-    private Long mentorId;
+    // fk(input)
     private Long placementId;
 
+    // UI display
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private Long internId;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String internName;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private Long mentorId;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String mentorName;
 
     // Reverse
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)

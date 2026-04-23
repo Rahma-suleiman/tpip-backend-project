@@ -29,19 +29,10 @@ public class Evaluation extends AuditModel<String> {
     @Enumerated(EnumType.STRING)
     private EvaluationType evaluationType;
 
-        // ✅ SUMMARY DATA (derived from logs)
+        // ✅ SUMMARY DATA (derived from logs/feedback)
     private Double averageRating;     // from feedbacks
     private Integer totalSessions;    // number of logs
     private Integer totalHours;       // optional (from activity logs)
-
- 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "intern_id", nullable = false)
-    private Intern intern;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "mentor_id", nullable = false)
-    private Mentor mentor;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "placement_id", nullable = false)
@@ -50,6 +41,19 @@ public class Evaluation extends AuditModel<String> {
     @OneToOne(mappedBy = "evaluation", fetch = FetchType.LAZY)
     private Extension extension;
 }
+// Evaluation depends ONLY on Placement
+
+// And through placement you can reach everything:
+
+// Placement
+//    ├── Intern
+//    ├── Mentor
+//    ├── Feedback (mentor → intern)
+//    └── Activity Logs (intern work)
+
+// So:
+
+//  YES — placement alone is enough
 // evaluation should be based on a combination of:
 
 // Intern Activity Logs → what the intern actually did

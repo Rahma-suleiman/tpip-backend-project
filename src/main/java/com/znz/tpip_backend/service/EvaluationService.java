@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.znz.tpip_backend.dto.EvaluationDto;
@@ -110,8 +109,7 @@ public class EvaluationService {
 
         // create new evaluation
         Evaluation evaluation = new Evaluation();
-        evaluation.setMentor(mentor);
-        evaluation.setIntern(intern);
+       
         evaluation.setPlacement(placement);
 
         evaluation.setScore(dto.getScore());
@@ -149,7 +147,7 @@ public class EvaluationService {
                 .orElseThrow(() -> new IllegalStateException("Evaluation not found"));
 
         // ONLY assigned mentor can edit
-        if (!evaluation.getMentor().getId().equals(loggedInMentorId)) {
+        if (!evaluation.getPlacement().getMentor().getId().equals(loggedInMentorId)) {
             throw new IllegalStateException("You are not allowed to edit this evaluation");
         }
         // ONLY PENDING evaluation can be edited
@@ -178,9 +176,24 @@ public class EvaluationService {
 
         EvaluationDto dto = modelMapper.map(e, EvaluationDto.class);
 
-        dto.setInternId(e.getIntern().getId());
-        dto.setMentorId(e.getMentor().getId());
-        dto.setPlacementId(e.getPlacement().getId());
+        if (e.getPlacement() != null) {
+            dto.setPlacementId(e.getPlacement().getId());
+
+            if (e.getPlacement().getIntern() != null) {
+                dto.setInternId(e.getPlacement().getIntern().getId());
+
+                if (e.getPlacement().getIntern().getApplication() != null) {
+                    dto.setInternName(e.getPlacement().getIntern().getApplication().getFirstName() + " "
+                            + e.getPlacement().getIntern().getApplication().getLastName());
+                }
+            }
+
+            if (e.getPlacement().getMentor() != null) {
+                dto.setMentorId(e.getPlacement().getMentor().getId());
+
+                dto.setMentorName(e.getPlacement().getMentor().getName());
+            }
+        }
 
         if (e.getExtension() != null) {
             dto.setExtensionId(e.getExtension().getId());
@@ -189,6 +202,31 @@ public class EvaluationService {
         return dto;
     }
 }
+// MIDTERM EVALUATION
+// Header : 9
+// {
+//   "score": 78,
+//   "evaluationDate": "2026-04-23",
+//   "evaluationType": "MIDTERM",
+//   "remarks": "Good progress in teaching practice, needs improvement in class control.",
+//   "placementId": 1
+// }
+// Header : 8
+// {
+//   "score": 45,
+//   "evaluationDate": "2026-04-23",
+//   "evaluationType": "MIDTERM",
+//   "remarks": "Struggles with lesson delivery and classroom management.",
+//   "placementId": 2
+// }
+// FINAL EVALUATION
+// {
+//   "score": 78,
+//   "evaluationType": "FINAL",
+//   "remarks": "Excellent performance, good classroom control and lesson delivery.",
+//   "placementId": 1
+// }
+
 // ✔ Rules implemented:
 // Mentor must match placement
 // Intern must match placement

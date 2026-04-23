@@ -36,6 +36,4 @@ public class Mentor extends User {
     @OneToMany(mappedBy = "mentor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Placement> placements = new ArrayList<>();
 
-    @OneToMany(mappedBy = "mentor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Evaluation> evaluations = new ArrayList<>();
 }

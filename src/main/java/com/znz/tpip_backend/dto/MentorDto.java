@@ -29,8 +29,19 @@ public class MentorDto {
     // fk r/ship
     private Long schoolId;
 
+    // UI Display
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private String schoolName; // Optional: Include school name for easier display in UI
+    private String schoolName; 
+
+    // ===== SUMMARY DATA (IMPORTANT FOR UI) =====
+    // @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    // private Integer totalEvaluationsGiven;
+
+    // @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    // private Double averageEvaluationScore;
+
+    // @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    // private Integer totalPlacements;
     
     // reverse r/ships
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
@@ -39,6 +50,4 @@ public class MentorDto {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private List<Long> placementIds ;
 
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private List<Long> evaluationIds; ;
 }

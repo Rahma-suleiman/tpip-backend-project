@@ -250,13 +250,13 @@ public class MentorService {
                                 .map(Feedback::getId)
                                 .toList()
                         : List.of());
-        if (mentor.getEvaluations() != null) {
-            dto.setEvaluationIds(
-                    mentor.getEvaluations()
-                            .stream()
-                            .map(eva -> eva.getId())
-                            .toList());
-        }
+        // if (mentor.getEvaluations() != null) {
+        //     dto.setEvaluationIds(
+        //             mentor.getEvaluations()
+        //                     .stream()
+        //                     .map(eva -> eva.getId())
+        //                     .toList());
+        // }
         return dto;
 
     }

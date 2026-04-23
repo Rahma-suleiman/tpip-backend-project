@@ -132,25 +132,17 @@ public class InternService {
             dto.setApplicantEmail(intern.getApplication().getEmail());
         }
         // manually map reverse r/ship ids only
+        
         // using Method Reference
-        dto.setEvaluationIds(
-                intern.getEvaluations() != null
+        // dto.setEvaluationIds(
+        //         intern.getEvaluations() != null
+        //                 ? intern.getEvaluations()
+        //                         .stream()
+        //                         .map(Evaluation::getId)
+        //                         .toList()
 
-                        // ? → IF condition is true
-                        // .stream() → convert list to stream (process one by one)
-                        // .map(...) → transform each Evaluation to something else
-                        // Evaluation → class name
-                        // :: → method reference (call method)
-                        // getId → method to get ID from each Evaluation
-                        // .toList() → convert result back to List<Long>
-                        ? intern.getEvaluations()
-                                .stream()
-                                .map(Evaluation::getId)
-                                .toList()
 
-                        // : → ELSE (if extensions is null)
-                        // List.of() → return empty list (safe, no null)
-                        : List.of());
+        //                 : List.of());
 
         // using Lambda
         if (intern.getActivityLogs() != null) {
