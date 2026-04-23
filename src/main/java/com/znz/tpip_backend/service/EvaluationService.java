@@ -169,7 +169,9 @@ public class EvaluationService {
     }
 
     public void deleteEvaluation(Long id) {
-
+        Evaluation evaluation = evaluationRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException("Evaluation not found"));
+        evaluationRepository.delete(evaluation);
     }
 
     private EvaluationDto mapToDto(Evaluation e) {
@@ -220,13 +222,22 @@ public class EvaluationService {
 //   "placementId": 2
 // }
 // FINAL EVALUATION
+// Header : 9
 // {
 //   "score": 78,
+//   "evaluationDate": "2026-08-30",
 //   "evaluationType": "FINAL",
 //   "remarks": "Excellent performance, good classroom control and lesson delivery.",
 //   "placementId": 1
 // }
-
+// Header : 8
+// {
+//   "score": 45,
+//   "evaluationDate": "2026-08-30",
+//   "evaluationType": "FINAL",
+//   "remarks": "Weak teaching delivery and classroom management issues.",
+//   "placementId": 2
+// }
 // ✔ Rules implemented:
 // Mentor must match placement
 // Intern must match placement
