@@ -8,13 +8,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.znz.tpip_backend.dto.EvaluationDto;
+import com.znz.tpip_backend.enums.EvaluationStatus;
 import com.znz.tpip_backend.service.EvaluationService;
+import com.znz.tpip_backend.service.ExtensionService;
 
 @RestController
 @RequestMapping("/api/v1/tpip/evaluation")
 public class EvaluationController {
     @Autowired
     private EvaluationService evaluationService;
+    @Autowired
+    private ExtensionService extensionService;
 
     @GetMapping
     public ResponseEntity<List<EvaluationDto>> getAllEvaluations() {
@@ -36,20 +40,22 @@ public class EvaluationController {
 
     @PostMapping
     public ResponseEntity<EvaluationDto> createEvaluation(
-            @RequestBody EvaluationDto dto,
-            @RequestHeader("mentorId") Long mentorId) {
-        EvaluationDto evaluation = evaluationService.createEvaluation(dto, mentorId);
-        return new ResponseEntity<>(evaluation, HttpStatus.CREATED);
+    @RequestBody EvaluationDto dto,
+    @RequestHeader("mentorId") Long mentorId) {
+    EvaluationDto evaluation = evaluationService.createEvaluation(dto, mentorId);
+    return new ResponseEntity<>(evaluation, HttpStatus.CREATED);
     }
 
+  
     // @PutMapping("/{id}")
     // public ResponseEntity<EvaluationDto> editEvaluation(@PathVariable Long id,
-    //         @RequestBody EvaluationDto evaluationDto) {
-    //     EvaluationDto evaluation = evaluationService.editEvaluation(id, evaluationDto);
-    //     return new ResponseEntity<>(evaluation, HttpStatus.OK);
+    // @RequestBody EvaluationDto evaluationDto) {
+    // EvaluationDto evaluation = evaluationService.editEvaluation(id,
+    // evaluationDto);
+    // return new ResponseEntity<>(evaluation, HttpStatus.OK);
     // }
 
-     @PutMapping("/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<EvaluationDto> update(
             @PathVariable Long id,
             @RequestBody EvaluationDto dto,
@@ -57,6 +63,7 @@ public class EvaluationController {
 
         return ResponseEntity.ok(evaluationService.updateEvaluation(id, dto, mentorId));
     }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEvaluation(@PathVariable Long id) {
         evaluationService.deleteEvaluation(id);

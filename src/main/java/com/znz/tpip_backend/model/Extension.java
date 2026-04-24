@@ -33,3 +33,4 @@ public class Extension extends AuditModel<String> {
     @JoinColumn(name = "evaluation_id", nullable = false)
     private Evaluation evaluation;
 }
+// ALTER TABLE extension DROP COLUMN intern_id;

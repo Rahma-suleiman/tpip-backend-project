@@ -30,8 +30,8 @@ public class EvaluationService {
     // @Autowired
     private final EvaluationRepository evaluationRepository;
     private final PlacementRepository placementRepository;
-    private final MentorRepository mentorRepository;
-    private final InternRepository internRepository;
+    // private final MentorRepository mentorRepository;
+    // private final InternRepository internRepository;
     private final FeedbackRepository feedbackRepository;
     private final ExtensionService extensionService;
     private final ModelMapper modelMapper;
@@ -88,9 +88,14 @@ public class EvaluationService {
         if (exists) {
             throw new IllegalStateException("Evaluation already exists for this type");
         }
-
+        // validate score
         if (dto.getScore() < 0 || dto.getScore() > 100) {
             throw new IllegalStateException("Score must be between 0 and 100");
+        }
+        // ✔ REASSESSMENT must have extension
+        if (dto.getEvaluationType() == EvaluationType.REASSESSMENT
+                && placement.getExtensions().isEmpty()) {
+            throw new IllegalStateException("Reassessment requires an existing extension");
         }
 
         // calculate summary BY Fetches ALL feedback records for that placement
@@ -109,7 +114,7 @@ public class EvaluationService {
 
         // create new evaluation
         Evaluation evaluation = new Evaluation();
-       
+
         evaluation.setPlacement(placement);
 
         evaluation.setScore(dto.getScore());
@@ -122,24 +127,58 @@ public class EvaluationService {
 
         // set status based on FINAL
         if (dto.getEvaluationType() == EvaluationType.FINAL) {
+            // FINAL evaluation determines pass/fail/extension
             if (dto.getScore() >= 50) {
                 evaluation.setStatus(EvaluationStatus.PASSED);
             } else {
                 evaluation.setStatus(EvaluationStatus.REQUIRES_EXTENSION);
 
             }
+        } else if (dto.getEvaluationType() == EvaluationType.REASSESSMENT) {
+            // REASSESSMENT only after extension → REASSESSMENT determines pass/fail (no
+            // extension)
+            if (dto.getScore() >= 50) {
+                evaluation.setStatus(EvaluationStatus.PASSED);
+            } else {
+                evaluation.setStatus(EvaluationStatus.FAILED);
+
+            }
+
         } else {
+            // MIDTERM evaluation is always PENDING (created but not finalized)
             evaluation.setStatus(EvaluationStatus.PENDING);
 
         }
+
         Evaluation savedEvaluation = evaluationRepository.save(evaluation);
 
-        if (savedEvaluation.getExtension() == null &&
-                savedEvaluation.getStatus() == EvaluationStatus.REQUIRES_EXTENSION) {
+        // handle post evaluation actions
+        handlePostEvaluation(savedEvaluation);
 
+        return mapToDto(savedEvaluation);
+    }
+
+    private void handlePostEvaluation(Evaluation savedEvaluation) {
+
+        // Automatically mark placement as COMPLETED or TERMINATED based on evaluation
+        if (savedEvaluation.getEvaluationType() == EvaluationType.FINAL
+                || savedEvaluation.getEvaluationType() == EvaluationType.REASSESSMENT) {
+
+            Placement updatePlacement = savedEvaluation.getPlacement();
+
+            if (savedEvaluation.getStatus() == EvaluationStatus.PASSED) {
+                updatePlacement.setStatus(PlacementStatus.COMPLETED);
+            } else if (savedEvaluation.getStatus() == EvaluationStatus.FAILED) {
+                updatePlacement.setStatus(PlacementStatus.TERMINATED);
+            }
+            placementRepository.save(updatePlacement);
+        }
+
+        // ✔ Auto-create extension if FINAL evaluation score < 50 and no existing
+        // extension
+        if (savedEvaluation.getEvaluationType() == EvaluationType.FINAL && savedEvaluation.getScore() < 50) {
             extensionService.createExtensionFromEvaluation(savedEvaluation.getId());
         }
-        return mapToDto(savedEvaluation);
     }
 
     public EvaluationDto updateEvaluation(Long id, EvaluationDto dto, Long loggedInMentorId) {
@@ -160,10 +199,11 @@ public class EvaluationService {
             throw new IllegalStateException("Score must be between 0 and 100");
         }
 
+        evaluation.setScore(dto.getScore());
+
         if (dto.getRemarks() != null) {
             evaluation.setRemarks(dto.getRemarks());
         }
-        evaluation.setScore(dto.getScore());
         Evaluation updatedEvaluation = evaluationRepository.save(evaluation);
         return mapToDto(updatedEvaluation);
     }
@@ -207,37 +247,40 @@ public class EvaluationService {
 // MIDTERM EVALUATION
 // Header : 9
 // {
-//   "score": 78,
-//   "evaluationDate": "2026-04-23",
-//   "evaluationType": "MIDTERM",
-//   "remarks": "Good progress in teaching practice, needs improvement in class control.",
-//   "placementId": 1
+// "score": 78,
+// "evaluationDate": "2026-04-23",
+// "evaluationType": "MIDTERM",
+// "remarks": "Good progress in teaching practice, needs improvement in class
+// control.",
+// "placementId": 1
 // }
 // Header : 8
 // {
-//   "score": 45,
-//   "evaluationDate": "2026-04-23",
-//   "evaluationType": "MIDTERM",
-//   "remarks": "Struggles with lesson delivery and classroom management.",
-//   "placementId": 2
+// "score": 45,
+// "evaluationDate": "2026-04-23",
+// "evaluationType": "MIDTERM",
+// "remarks": "Struggles with lesson delivery and classroom management.",
+// "placementId": 2
 // }
 // FINAL EVALUATION
 // Header : 9
 // {
-//   "score": 78,
-//   "evaluationDate": "2026-08-30",
-//   "evaluationType": "FINAL",
-//   "remarks": "Excellent performance, good classroom control and lesson delivery.",
-//   "placementId": 1
+// "score": 78,
+// "evaluationDate": "2026-08-30",
+// "evaluationType": "FINAL",
+// "remarks": "Excellent performance, good classroom control and lesson
+// delivery.",
+// "placementId": 1
 // }
 // Header : 8
 // {
-//   "score": 45,
-//   "evaluationDate": "2026-08-30",
-//   "evaluationType": "FINAL",
-//   "remarks": "Weak teaching delivery and classroom management issues.",
-//   "placementId": 2
+// "score": 45,
+// "evaluationDate": "2026-08-30",
+// "evaluationType": "FINAL",
+// "remarks": "Weak teaching delivery and classroom management issues.",
+// "placementId": 2
 // }
+
 // ✔ Rules implemented:
 // Mentor must match placement
 // Intern must match placement
@@ -264,9 +307,9 @@ public class EvaluationService {
 // ↓
 // Final decision (pass / extend)
 // ↓
-// IF score < 50 → REQUIRES_EXTENSION
+// IF score < 50 → status = REQUIRES_EXTENSION
 // ↓
-// System creates Extension
+// System creates Extension automatically
 // ↓
 // Placement continues (extended period)
 // ↓

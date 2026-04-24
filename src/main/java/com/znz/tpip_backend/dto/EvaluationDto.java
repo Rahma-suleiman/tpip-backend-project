@@ -18,7 +18,8 @@ public class EvaluationDto {
     
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private EvaluationStatus status;
-
+    
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private LocalDate evaluationDate;
 
     private EvaluationType evaluationType;
